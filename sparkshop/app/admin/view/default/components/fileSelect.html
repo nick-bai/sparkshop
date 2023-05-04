@@ -1,0 +1,712 @@
+<template id="file-select">
+    <el-card class="box-card img-select">
+        <div slot="header" class="clearfix">
+            <span>资源管理</span>
+            <i class="el-icon-close" style="float: right;font-size: 16px;cursor: pointer" v-if="needSelect" @click="closeDialog"></i>
+        </div>
+        <el-container style="font-size: 14px;overflow: hidden">
+            <el-aside width="200px">
+                <ul style="margin-left: -30px;width: 90%">
+                    <li>
+                        <div class="tree-item" @click="itemData(0)">
+                            <i class="el-icon-caret-bottom"></i>
+                            <span class="cate-title">全部图片</span>
+                            <el-dropdown @command="handleCommand($event, {id: 0})" style="left: 10px;" v-if="!needSelect">
+                                <span class="el-dropdown-link">
+                                    <i class="el-icon-more"></i>
+                                </span>
+                                <el-dropdown-menu slot="dropdown">
+                                    <el-dropdown-item command="add">添加分类</el-dropdown-item>
+                                </el-dropdown-menu>
+                            </el-dropdown>
+                        </div>
+                    </li>
+                    <div id="cate-tree" style="margin-left: 10px;width: 80%">
+                        <li v-for="item in cateTree" :key="item.id">
+                            <i :class="[((showSub == 'block') && (item.id == nowSubId)) ? 'el-icon-caret-bottom' : 'el-icon-caret-right']"
+                               @click="toggleSub(item)"></i>
+                            <div class="tree-item" @click="itemData(item.id)">
+                                <span class="cate-title" :class="{'active' : (form.cate_id == item.id)}">{{ item.name }}</span>
+                                <el-dropdown @command="handleCommand($event, item)" v-if="!needSelect">
+                                    <span class="el-dropdown-link">
+                                        <i class="el-icon-more"></i>
+                                    </span>
+                                    <el-dropdown-menu slot="dropdown">
+                                        <el-dropdown-item command="add">添加分类</el-dropdown-item>
+                                        <el-dropdown-item command="edit">编辑分类</el-dropdown-item>
+                                        <el-dropdown-item command="del">删除分类</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </el-dropdown>
+                            </div>
+                            <ul class="child-sub" v-if="item.child && item.child.length != 0"
+                                :style="{'display': (item.id == nowSubId) ? showSub : 'none'}">
+                                <li v-for="vo in item.child">
+                                    <div class="tree-item" @click="itemData(vo.id)">
+                                        <span class="cate-title sub-name" :class="{'active' : (form.cate_id == vo.id)}" style="width: 100px !important;">{{ vo.name }}</span>
+                                        <el-dropdown @command="handleCommand($event, vo)" style="left: 142px;top: -16px;" v-if="!needSelect">
+                                            <span class="el-dropdown-link">
+                                                <i class="el-icon-more"></i>
+                                            </span>
+                                            <el-dropdown-menu slot="dropdown">
+                                                <el-dropdown-item command="edit">编辑分类</el-dropdown-item>
+                                                <el-dropdown-item command="del">删除分类</el-dropdown-item>
+                                            </el-dropdown-menu>
+                                        </el-dropdown>
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+                    </div>
+                </ul>
+            </el-aside>
+            <el-divider direction="vertical"></el-divider>
+            <el-main style="height: calc(100% - 60px);">
+                <el-container style="overflow: hidden">
+                    <el-header style="padding-top: 10px;">
+                        <div class="tool-bar">
+                            <el-row style="width: 650px">
+                                <el-col :span="4">
+                                    <el-badge :value="selectedIdsArr.length" class="item" v-if="needSelect" >
+                                        <el-button type="primary" size="small" icon="el-icon-success" :disabled="(selectedIdsArr.length > 0) ? false : true" @click="makeSelected">确定使用</el-button>
+                                    </el-badge>
+                                </el-col>
+                                <el-col :span="4">
+                                    <el-upload
+                                            class="upload-demo"
+                                            ref="uploadFile"
+                                            action="{:url('attachment/upload')}"
+                                            :data="attachmentData"
+                                            :on-success="successHandle"
+                                            :limit="1">
+                                        <el-button type="primary" size="small" icon="el-icon-upload">上传图片</el-button>
+                                    </el-upload>
+                                </el-col>
+                                <el-col :span="4">
+                                    <el-button type="danger" size="small" icon="el-icon-delete-solid"
+                                               :disabled="(selectedIdsArr.length > 0) ? false : true" @click="delImg">删除图片
+                                    </el-button>
+                                </el-col>
+                                <el-col :span="4" v-if="!needSelect">
+                                    <el-button size="small" icon="el-icon-s-promotion"
+                                               :disabled="(selectedIdsArr.length > 0) ? false : true" @click="mvImg">移动图片
+                                    </el-button>
+                                </el-col>
+                                <el-col :span="4">
+                                    <span style="position: relative;top:6px;margin-left: 0px">已选择: <em id="selNum" style="color:#11a1fd">{{ selectedIdsArr.length }}</em> 张</span>
+                                </el-col>
+                            </el-row>
+                        </div>
+                    </el-header>
+                    <el-main style="height: 460px;padding-top:0">
+                        <ul id="online" style="padding: 0;position: absolute;width: 900px;height: 460px" v-if="pics.length > 0">
+                            <li @click="selectPic(item)" v-for="item in pics" :key="item.id"
+                                :class="{'selected' : (selectedIdsArr.indexOf(item.id) != -1)}">
+                                <img :src="item.url" style="width: auto;height: auto;max-width: 100%;max-height: 100%">
+                                <span class="icon"></span>
+                            </li>
+                        </ul>
+                        <el-empty description="暂无相关数据" v-else></el-empty>
+                    </el-main>
+                    <el-footer>
+                        <el-pagination
+                                background
+                                layout="->,prev, pager, next"
+                                :page-size="form.limit"
+                                @current-change="pageChangeHandle"
+                                :total="page.total">
+                        </el-pagination>
+                    </el-footer>
+                </el-container>
+            </el-main>
+        </el-container>
+
+        <el-dialog title="分类管理" :visible.sync="dialogFormVisible" width="500px">
+            <el-form :model="cateForm" label-width="80px">
+                <el-form-item label="分类名称">
+                    <el-input v-model="cateForm.name" autocomplete="off"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogFormVisible = false" size="small">取 消</el-button>
+                <el-button type="primary" @click="cateSubmit" size="small">确 定</el-button>
+            </div>
+        </el-dialog>
+
+        <el-dialog title="移动图片" :visible.sync="dialogCateVisible" width="500px">
+            <el-form :model="cateForm" label-width="80px">
+                <el-form-item label="选择分类">
+                    <el-cascader
+                        v-model="moveCateId"
+                        :options="cateTree"
+                        :props="treeProps"
+                        style="width:380px"
+                        clearable
+                    ></el-cascader>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogCateVisible = false" size="small">取 消</el-button>
+                <el-button type="primary" @click="cateMoveSubmit" size="small">确 定</el-button>
+            </div>
+        </el-dialog>
+    </el-card>
+</template>
+<script>
+    Vue.component('file-select', {
+        template: '#file-select',
+        props: {
+            needSelect: {
+                type: Boolean,
+                default: false
+            },
+            selectNum: {
+                type: Number,
+                default: 0
+            },
+        },
+        data: function () {
+            return {
+                dialogFormVisible: false,
+                dialogCateVisible: false,
+                baseIndex: '/{:config("shop.backend_index")}/',
+                form: {
+                    page: 1,
+                    limit: 30,
+                    cate_id: 0
+                },
+                moveCateId: 0,
+                treeProps: {
+                    value: 'id',
+                    label: 'name',
+                    children: 'child',
+                    checkStrictly: true
+                },
+                cateForm: {
+                    pid: 0,
+                    name: ''
+                },
+                cateTree: [],
+                pics: [],
+                page: {
+                    total: 0
+                },
+                selectedIdsArr: [],
+                selectedArr: [],
+                nowSubId: 0,
+                showSub: 'none',
+                attachmentData: {
+                    cate_id: 0
+                }
+            }
+        },
+        mounted() {
+            this.getCate()
+            this.getList()
+        },
+        methods: {
+            // 显示详情
+            itemData(cateId) {
+                this.form.cate_id = cateId;
+                this.attachmentData.cate_id = cateId
+                this.getList()
+            },
+            // 获取列表
+            async getList() {
+                let res = await request.get(this.baseIndex + "comImages/index", this.form)
+                this.pics = res.data.data
+            },
+            // 分类列表
+            async getCate() {
+                let res = await request.get(this.baseIndex + "comImageCate/index")
+                this.cateTree = res.data
+            },
+            // 显示菜单
+            handleCommand(command, item) {
+                let pid = item.id
+                if (command === 'add') {
+                    this.cateForm.pid = pid;
+                    this.dialogFormVisible = true
+                } else if (command === 'del') {
+                    this.$confirm('您确定要删除此分类?', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(async() => {
+                        let res = await request.get(this.baseIndex + "comImageCate/del", {id: pid})
+                        if (res.code === 0) {
+                            this.$message.success('删除成功')
+                            this.getCate()
+                        } else {
+                            this.$message.error(res.msg)
+                        }
+                    }).catch(() => {});
+                } else if (command === 'edit') {
+                    this.cateForm.id = pid;
+                    this.cateForm.name = item.name
+                    this.cateForm.pid = item.pid
+                    this.dialogFormVisible = true
+                }
+            },
+            // 子菜单显示
+            toggleSub(item) {
+                this.nowSubId = item.id
+                this.showSub = (this.showSub === 'none') ? 'block' : 'none';
+            },
+            // 移动图片
+            mvImg() {
+                if (this.selectedIdsArr.length == 0) {
+                    this.$message.error('请选择图片');
+                    return false;
+                }
+                this.dialogCateVisible = true
+            },
+            // 选择图片
+            selectPic(item) {
+                let index = this.selectedIdsArr.indexOf(item.id);
+                if (index == -1) {
+
+                    if (this.needSelect && this.selectedIdsArr.length >= this.selectNum) {
+                        this.$message.error('最多选择' + this.selectNum + '张');
+                        return false;
+                    }
+
+                    this.selectedIdsArr.push(item.id)
+                    this.selectedArr.push(item)
+                } else {
+                    this.selectedIdsArr.splice(index, 1)
+                    this.selectedArr.splice(index, 1)
+                }
+            },
+            // 翻页
+            pageChangeHandle(page) {
+                this.form.page = page
+                this.getList()
+            },
+            // 上传成功回调
+            successHandle(res) {
+                if (res.code == 0) {
+                    this.$message.success(res.msg);
+                } else {
+                    this.$message.error(res.msg);
+                }
+                this.$refs.uploadFile.clearFiles();
+                this.getList()
+            },
+            // 添加分类
+            async cateSubmit() {
+                if (this.cateForm.name == '') {
+                    this.$message.error('请输入分类名称');
+                    return false;
+                }
+
+                let res;
+                if (this.cateForm.id) {
+                    res = await request.post(this.baseIndex + 'comImageCate/edit', this.cateForm)
+                } else {
+                    res = await request.post(this.baseIndex + 'comImageCate/add', this.cateForm)
+                }
+
+                if (res.code == 0) {
+                    this.$message.success(res.msg)
+                    this.dialogFormVisible = false
+                    this.cateForm = {
+                        pid: 0,
+                        name: ''
+                    }
+                    this.getCate()
+                } else {
+                    this.$message.error(res.msg)
+                }
+            },
+            // 删除图片
+            async delImg() {
+                if (this.selectedIdsArr.length == 0) {
+                    this.$message.error('请选择要删除的图片')
+                    return false
+                }
+
+                this.$confirm('删除图片将无法恢复，可能会导致使用该图片的地方无法查看到该图片，请谨慎操作！', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async() => {
+                    let res = await request.get(this.baseIndex + "comImages/del", {ids: this.selectedIdsArr})
+                    this.selectedIdsArr = []
+                    this.selectedArr = []
+                    if (res.code === 0) {
+                        this.$message.success('删除成功')
+                        this.getList()
+                    } else {
+                        this.$message.error(res.msg)
+                    }
+                }).catch(() => {});
+            },
+            // 移动分类
+            async cateMoveSubmit() {
+                if (this.moveCateId.length == 0) {
+                    this.$message.error('请选择要移动的分类')
+                    return false;
+                }
+
+                let res = await request.post(this.baseIndex + 'comImages/edit', {
+                    ids: this.selectedIdsArr,
+                    cate_id: this.moveCateId[this.moveCateId.length - 1]
+                });
+
+                this.dialogCateVisible = false
+                this.selectedIdsArr = []
+                this.selectedArr = []
+                if (res.code == 0) {
+                    this.$message.success('操作成功')
+                    this.getList()
+                } else {
+                    this.$message.error(res.msg)
+                }
+            },
+            // 确定使用图片
+            makeSelected() {
+                if (this.selectedArr.length > this.selectNum) {
+                    this.$message.success('最多选择' + this.selectNum + '张')
+                    return false;
+                }
+                // 深拷贝解决联动问题 https://blog.csdn.net/weixin_44585369/article/details/113641214
+                let selected = JSON.parse(JSON.stringify(this.selectedArr))
+                this.selectedArr = []
+                this.selectedIdsArr = []
+                this.$emit('selected-img', selected)
+            },
+            // 关闭弹层
+            closeDialog() {
+                this.$emit('close-dialog')
+            }
+        }
+    })
+</script>
+<style scoped>
+    html, body {
+        height: 100%;
+        font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimSun, sans-serif;
+    }
+
+    .layui-layer-btn .layui-layer-btn0 {
+        color: rgb(255, 255, 255) !important;
+    }
+
+    .layui-laypage .layui-laypage-curr .layui-laypage-em {
+        background-color: rgb(17, 161, 253) !important;
+    }
+
+    .layui-layer-title {
+        border-bottom: none !important;
+        font-size: 18px !important;
+    }
+
+    .layui-input {
+        font-size: 14px;
+        color: rgb(24, 24, 24);
+        background-color: rgb(255, 255, 255);
+        border: 1px solid rgb(239, 239, 239);
+        border-radius: 3px;
+        min-height: 50px;
+        padding: 0px 20px;
+        display: block;
+        width: 100%;
+        height: calc(2.25rem + 2px);
+        line-height: 1.5;
+        background-clip: padding-box;
+        transition: border-color 0.15s ease-in-out 0s, box-shadow 0.15s ease-in-out 0s;
+    }
+
+    .layui-form-checked[lay-skin="primary"] i {
+        background-color: rgb(17, 161, 253);
+        border-color: rgb(17, 161, 253) !important;
+    }
+
+    .layui-form-radio:hover *, .layui-form-radioed, .layui-form-radioed > i {
+        color: rgb(17, 161, 253);
+    }
+
+    .layui-form-item .layui-input-inline {
+        margin-left: 29px;
+    }
+
+    .layui-form-onswitch {
+        background-color: rgb(17, 161, 253);
+        border-color: rgb(17, 161, 253) !important;
+    }
+
+    .layui-form-select dl dd.layui-this {
+        background-color: rgb(17, 161, 253) !important;
+    }
+
+    .layui-layer {
+        border-radius: 5px !important;
+    }
+
+    .sp-upload-box {
+        height: 120px;
+        width: 120px;
+        border: 1px dashed rgb(221, 221, 221);
+        cursor: pointer;
+    }
+
+    .sp-upload-box i {
+        font-size: 50px;
+        color: rgb(17, 161, 253);
+        margin-left: 35px;
+        top: 20px;
+        position: relative;
+    }
+
+    .sp-upload-box span {
+        margin-left: 35px;
+        top: 20px;
+        position: relative;
+        color: rgb(90, 90, 90);
+        font-size: 12px;
+    }
+
+    .sp-upload-box img {
+        height: 120px;
+        width: 120px;
+        position: relative;
+        z-index: 99;
+        top: -73px;
+        left: 0px;
+        background: rgb(255, 255, 255);
+    }
+
+    .sp-upload-box .cover {
+        height: 30px;
+        width: 120px;
+        background: rgb(0, 0, 0);
+        position: relative;
+        top: -103px;
+        z-index: 199;
+        opacity: 0.4;
+        display: none;
+    }
+
+    .sp-upload-box .rm {
+        font-size: 30px;
+        color: rgb(255, 255, 255);
+        position: relative;
+        top: -133px;
+        left: 10px;
+        z-index: 208;
+        display: none;
+    }
+
+    .layui-input {
+        border: 1px solid rgb(220, 222, 226) !important;
+    }
+
+    .layui-unselect, .layui-input {
+        min-height: 30px !important;
+    }
+
+    .layui-upload-img {
+        width: 92px;
+        height: 92px;
+    }
+
+    ul li {
+        list-style: none;
+        padding: 0px;
+        white-space: nowrap;
+        outline: none;
+        margin-top: 10px;
+    }
+
+    .tree-item:hover {
+        background: rgb(238, 238, 238);
+    }
+
+    .tree-item {
+        display: inline-block;
+        margin: 0px;
+        padding: 0px 5px;
+        border-radius: 3px;
+        cursor: pointer;
+        vertical-align: top;
+        color: rgb(81, 90, 110);
+        transition: all 0.2s ease-in-out 0s;
+        width: 100%;
+        height: 20px;
+    }
+
+    .tool-more {
+        float: right;
+        margin-top: -15px;
+    }
+
+    .menu-box {
+        position: absolute;
+        width: 80px;
+        height: 88px;
+        background-color: rgb(255, 255, 255);
+        background-clip: padding-box;
+        border-radius: 4px;
+        box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 6px;
+        display: none;
+        right: 10px;
+    }
+
+    .tree-dropdown-item {
+        padding: 4px 10px;
+    }
+
+    .tree-dropdown-item:hover {
+        background: rgb(238, 238, 238);
+    }
+
+    .r-triangle {
+        margin-left: -20px;
+        cursor: pointer;
+    }
+
+    .child-sub {
+        padding: 0px;
+        display: none;
+    }
+
+    .sub-name {
+        margin-left: 35px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 120px !important;
+        display: block !important;
+    }
+
+    .active {
+        color: rgb(45, 140, 240);
+    }
+
+    #online #imageList {
+        width: 100%;
+        height: 100%;
+        overflow: hidden auto;
+        position: relative;
+    }
+
+    #online ul {
+        display: block;
+        list-style: none;
+        margin: 0px;
+        padding: 0px;
+        height: 70%;
+    }
+
+    #online li {
+        float: left;
+        display: block;
+        list-style: none;
+        padding: 0px;
+        width: 96px;
+        height: 96px;
+        margin: 0px 0px 9px 9px;
+        background-color: rgb(250, 250, 250);
+        cursor: pointer;
+        position: relative;
+        text-align: center;
+        line-height: 96px;
+    }
+
+    #online li.clearFloat {
+        float: none;
+        clear: both;
+        display: block;
+        width: 0px;
+        height: 0px;
+        margin: 0px;
+        padding: 0px;
+    }
+
+    #online li img {
+        cursor: pointer;
+    }
+
+    #online li .icon {
+        cursor: pointer;
+        width: 96px;
+        height: 96px;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        z-index: 2;
+        border: 0px;
+        background-repeat: no-repeat;
+    }
+
+    #online li .icon:hover {
+        width: 96px;
+        height: 96px;
+        border: 3px solid rgb(16, 148, 250);
+    }
+
+    #online li.selected .icon {
+        background-image: url("/static/admin/default/img/success.png");
+        background-position: 58px 58px;
+    }
+
+    #online li.selected .icon:hover {
+        width: 96px;
+        height: 96px;
+        border: 3px solid rgb(16, 148, 250);
+        background-position: 55px 55px;
+    }
+
+    .tool-bar {
+        width: 100%;
+        height: 40px;
+        padding-left: 10px;
+    }
+
+    .table-responsive {
+        overflow-x: visible !important;
+    }
+
+    .card {
+        margin-bottom: 0px;
+        height: 100%;
+        overflow: auto;
+    }
+
+    .el-card {
+        height: 100%
+    }
+
+    .img-select .el-card__body {
+        height: 100%
+    }
+
+    .el-container {
+        height: 100%;
+        overflow-y: scroll
+    }
+
+    .el-divider--vertical {
+        height: 100%
+    }
+
+    .img-select .el-card__body {
+        padding: 5px !important
+    }
+
+    .el-icon-caret-right {
+        cursor: pointer
+    }
+    .cate-title {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 120px;
+        display: inline-block;
+    }
+    .el-dropdown {
+        top: -4px;
+    }
+</style>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN" xml:lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>购物车</title>
+    <link rel="stylesheet" href="{__CSS__}/bootstrap.min.css">
+    <link rel="stylesheet" href="{__CSS__}/style.css">
+    <link rel="stylesheet" href="{__CSS__}/iconfont.css">
+    <link rel="stylesheet" href="{__CSS__}/cart.css">
+    <link rel="stylesheet" href="/static/js/layui/css/layui.css">
+    <script src="{__JS__}/jquery.min.js"></script>
+    <script src="{__JS__}/bootstrap.bundle.min.js"></script>
+    <script src="{__JS__}/meanmenu.min.js"></script>
+    <script src="/static/js/layui/layui.js"></script>
+    <script src="{__JS__}/custom.js"></script>
+</head>
+<body style="background: #f9f9f9;">
+{include file="public/header_no_nav"}
+<div class="bar">
+    <div class="container bar-div">首页 &gt;&gt; 购物车</div>
+</div>
+<div class="cart-content">
+    <div class="container cart-detail">
+        <div class="row">
+            <div class="col-lg-8" style="min-height: 400px;border: 1px solid #e2e2e2;">
+                <div class="row" style="border-bottom: 1px solid #e2e2e2;padding: 10px;">
+                    <div class="col-lg-5 th-text">商品信息</div>
+                    <div class="col-lg-2 th-text">单价</div>
+                    <div class="col-lg-2 th-text">数量</div>
+                    <div class="col-lg-2 th-text">总价</div>
+                    <div class="col-lg-1 th-text">操作</div>
+                </div>
+                <div id="cart-list">
+
+                </div>
+            </div>
+            <div class="col-lg-3 info-box">
+                <h4 style="font-size: 20px">结算信息</h4>
+                <div class="row" style="margin-top: 30px">
+                    <div class="col-lg-5 th-text">已选件数</div>
+                    <div class="col-lg-7 th-text total-number">0</div>
+                </div>
+                <div class="row" style="margin-top: 20px">
+                    <div class="col-lg-5 th-text" style="margin-top: 5px">累计金额</div>
+                    <div class="col-lg-7 th-text total-amount">￥0</div>
+                </div>
+                <div class="settlement">立即结算</div>
+            </div>
+        </div>
+        <div id="pages"></div>
+    </div>
+</div>
+<!-- 底部 -->
+{include file="public/footer"}
+
+<div style="display: none">
+    <form method="post" action="/index/order">
+        <input type="hidden" name="order_data" id="order_data"/>
+        <button type="submit" id="buy_goods"></button>
+    </form>
+</div>
+
+<script id="cartTpl" type="text/html">
+    {{#  layui.each(d.data, function(index, vo){ }}
+    <div class="row row-content">
+        <div class="col-lg-2 goods-info">
+            <input type="checkbox" name="cart_id" class="cart-check" data-id="{{ vo.id }}" data-price="{{ vo.price }}"
+                   data-num="{{ vo.goods_num }}" data-rule="{{ vo.rule_id }}" data-goods="{{ vo.goods_id }}"/>
+            <img src="{{ vo.images }}" style="height: 80px;width: auto"/>
+        </div>
+        <div class="col-lg-3" style="height: 90px;">
+            <p class="cart-title">{{ vo.title }}</p>
+            <p class="cart-rule">{{ vo.rule_text }}</p>
+        </div>
+        <div class="col-lg-2 cart-price">￥{{ numberFormat(vo.price, 2) }}</div>
+        <div class="col-lg-2" style="height: 80px;color:#5a5a5a">
+            <ul class="count">
+                <li><span id="num-jian" class="num-jian" onclick="sub(this)">-</span></li>
+                <li><input type="number" class="input-num" value="{{ vo.goods_num }}"></li>
+                <li><span id="num-jia" class="num-jia" onclick="add(this)">+</span></li>
+            </ul>
+        </div>
+        <div class="col-lg-2 total_amount cart-list-total">￥ {{ numberFormat(vo.price * vo.goods_num, 2) }}</div>
+        <div class="col-lg-1 cart-rm" onclick="remove({{ vo.id }})">删除</div>
+    </div>
+    {{#  }) }}
+</script>
+
+<script src="{__JS__}/notify_stand.js"></script>
+<script src="{__JS__}/cart.js"></script>
+<div class="go-top">
+    <i class="iconfont icon-yooxi"></i>
+    <i class="iconfont icon-yooxi"></i>
+</div>
+</body>
+</html>

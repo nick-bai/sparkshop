@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>应用中心</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+</head>
+<body>
+<div id="app">
+    <div class="app-loading" v-if="pageLoading">
+        <div class="app-loading__logo">
+            <img src="{__IMG__}/logo.png"/>
+        </div>
+        <div class="app-loading__loader"></div>
+        <div class="app-loading__title">{$title}</div>
+    </div>
+    <el-card class="box-card" v-else>
+        <div slot="header" class="clearfix">
+            <span>应用中心</span>
+        </div>
+        <el-tabs v-model="activeName" @tab-click="handleClick">
+            <el-tab-pane label="应用列表" name="first">
+                <div class="search-box">
+                    <el-form :inline="true" :model="searchForm" class="demo-form-inline" style="margin-top: 20px;">
+                        <el-form-item label="插件名称">
+                            <el-input v-model="searchForm.title" placeholder="" clearable size="small"></el-input>
+                        </el-form-item>
+                        <el-form-item label="插件状态">
+                            <el-select v-model="searchForm.status" placeholder="插件状态" size="small" clearable>
+                                <el-option label="待安装" value="1"></el-option>
+                                <el-option label="已安装" value="2"></el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-button type="primary" @click="onSearch" size="small" icon="el-icon-search" >查询</el-button>
+                        </el-form-item>
+                    </el-form>
+                </div>
+                <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-bottom: 15px"></div>
+                <el-table
+                        :data="tableData"
+                        style="width: 100%">
+                    <el-table-column
+                            prop="title"
+                            label="应用名称">
+                    </el-table-column>
+                    <el-table-column
+                            prop="name"
+                            label="标识">
+                    </el-table-column>
+                    <el-table-column
+                            prop="home_page"
+                            width="260px"
+                            :show-overflow-tooltip="true"
+                            label="地址">
+                    </el-table-column>
+                    <el-table-column
+                            prop="author"
+                            label="作者">
+                    </el-table-column>
+                    <el-table-column
+                            label="版本">
+                        <template scope="scope">
+                            <el-tag type="danger">{{ scope.row.version }}</el-tag>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            prop="description"
+                            width="260px"
+                            :show-overflow-tooltip="true"
+                            label="描述">
+                    </el-table-column>
+                    <el-table-column
+                            label="状态">
+                        <template scope="scope">
+                            <el-tag type="danger" v-if="scope.row.status == 1">待安装</el-tag>
+                            <el-tag type="success" v-if="scope.row.status == 2">已安装</el-tag>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            prop="create_time"
+                            width="180px"
+                            label="录入时间">
+                    </el-table-column>
+                    <el-table-column label="操作" fixed="right" width="200px">
+                        <template slot-scope="scope">
+                            <el-button
+                                    v-if="scope.row.status == 1"
+                                    type="text" size="small"
+                                    @click="handleInstall(scope.row)">安装
+                            </el-button>
+                            <el-button
+                                    v-if="scope.row.status == 1"
+                                    type="text" size="small"
+                                    @click="handleDelete(scope.row)">删除
+                            </el-button>
+                            <el-button
+                                    v-if="scope.row.status == 2"
+                                    type="text" size="small"
+                                    @click="handleUnInstall(scope.row)">卸载
+                            </el-button>
+                            <el-button
+                                    type="text" size="small"
+                                    @click="handlePack(scope.row)">打包
+                            </el-button>
+                            <el-button
+                                    type="text" size="small"
+                                    @click="handleUpdate(scope.row)">生成升级包
+                            </el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+
+                <el-pagination
+                        style="margin-top: 10px"
+                        background
+                        layout="->, prev, pager, next"
+                        :page-size="searchForm.limit"
+                        @current-change="pageChangeHandle"
+                        :total="total">
+                </el-pagination>
+            </el-tab-pane>
+            <el-tab-pane label="创建插件" name="second">
+                <el-form ref="ruleForm" :rules="rules" :model="form" label-width="80px">
+                    <el-form-item label="插件标识" prop="name">
+                        <el-input v-model="form.name" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="插件名称" prop="title">
+                        <el-input v-model="form.title" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="作者" prop="author">
+                        <el-input v-model="form.author" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="主页" prop="home_page">
+                        <el-input v-model="form.home_page" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="版本" prop="version">
+                        <el-input v-model="form.version" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="描述">
+                        <el-input v-model="form.description" style="width: 500px" type="textarea" :rows="3"></el-input>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="onSubmit('ruleForm')" :loading="loading">立即创建</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-tab-pane>
+            <el-tab-pane label="安装插件" name="third">
+                <el-form ref="form" :model="installForm" label-width="80px">
+                    <el-form-item label="包类型">
+                        <el-radio-group v-model="installForm.package_type">
+                            <el-radio label="1">安装包</el-radio>
+                            <el-radio label="2">升级包</el-radio>
+                        </el-radio-group>
+                    </el-form-item>
+                    <el-form-item label="安装包" style="width: 250px">
+                        <el-upload
+                            class="upload-demo"
+                            action="{:url('attachment/uploadOtherFile')}"
+                            :limit="1"
+                            :on-success="successHandle">
+                            <el-button size="small" type="default" icon="el-icon-upload">点击上传</el-button>
+                        </el-upload>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="install" size="small">确认安装</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-tab-pane>
+        </el-tabs>
+    </el-card>
+
+    <el-dialog title="处理更新包" :visible.sync="updateDialog" width="900px" destroy-on-close :close-on-click-modal="false">
+        {include file="/plugin/files"}
+    </el-dialog>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                pageLoading: true,
+                tableData: [],
+                baseIndex: '/{:config("shop.backend_index")}/',
+                activeName: 'first',
+                searchForm: {
+                    limit: 15,
+                    page: 1,
+                    title: '',
+                    status: ''
+                },
+                total: 1,
+                form: {
+                    name: '',
+                    title: '',
+                    description: '',
+                    author: '',
+                    home_page: '',
+                    version: '1.0'
+                },
+                // 安装表单
+                installForm: {
+                    name: '',
+                    package_type: '1',
+                    package_url: ''
+                },
+                // 规则
+                rules: {
+                    name: [
+                        { required: true, message: '请输入插件标识'}
+                    ],
+                    title: [
+                        { required: true, message: '请输入插件名称'}
+                    ],
+                    author: [
+                        { required: true, message: '请输入插作者名称'}
+                    ],
+                    home_page: [
+                        { required: true, message: '请输入插件主页'}
+                    ],
+                    version: [
+                        { required: true, message: '请输入插件版本'}
+                    ]
+                },
+                loading: false,
+                updateForm: {
+                    name: '',
+                    files: ''
+                },
+                updateDialog: false, // 更新弹层
+            }
+        },
+        mounted() {
+            // 获取应用列表
+            this.getAppList()
+            this.pageLoading = false
+        },
+        methods: {
+            // 获取信息
+            handleClick(active) {
+                if (active.name == 'first') {
+                    this.getAppList()
+                }
+            },
+            // 获取应用列表
+            async getAppList() {
+                let res = await request.get(this.baseIndex + 'plugin/index', this.searchForm)
+                this.total = res.data.total
+                this.tableData = res.data.rows
+            },
+            // 分页修改
+            pageChangeHandle(val) {
+                this.searchForm.page = val
+                this.getAppList()
+            },
+            // 安装
+            handleInstall(row) {
+                this.$confirm('您即将安装该插件，确定继续吗?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    let res = await request.get(this.baseIndex + 'plugin/install', {id: row.id})
+                    if (res.code == 0) {
+                        this.$message.success('安装成功')
+                        this.getAppList()
+                    } else {
+                        this.$message.error(res.msg)
+                    }
+                });
+            },
+            // 删除
+            async handleDelete(row) {
+                this.$confirm('删除插件则会将插件的文件也删除，请谨慎操作！', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    let res = await request.get(this.baseIndex + 'plugin/del', {id: row.id})
+                    if (res.code == 0) {
+                        this.$message.success('删除成功')
+                        this.getAppList()
+                    } else {
+                        this.$message.error(res.msg)
+                    }
+                });
+            },
+            // 卸载
+            handleUnInstall(row) {
+                this.$confirm('即将卸载该程序，卸载后该功能将不可使用，确定继续吗?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                   let res = await request.get(this.baseIndex + 'plugin/uninstall', {id: row.id})
+                    if (res.code == 0) {
+                        this.$message.success('卸载成功')
+                        this.getAppList()
+                    } else {
+                        this.$message.error(res.msg)
+                    }
+                });
+            },
+            // 创建插件
+            onSubmit(formName) {
+                this.$refs[formName].validate(async (valid) => {
+                    if (valid) {
+                        this.loading = true
+                        let res = await request.post(this.baseIndex + 'plugin/create', this.form)
+                        this.loading = false
+
+                        if (res.code == 0) {
+                            this.$message.success(res.msg)
+                            this.getAppList()
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500)
+                        } else {
+                            this.$message.error(res.msg)
+                        }
+                    }
+                });
+            },
+            // 搜索
+            onSearch() {
+                this.searchForm.page = 1
+                this.getAppList()
+            },
+            // 打包应用
+            handlePack(row) {
+                this.$confirm('确定打包该应用吗?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    let res = await request.get(this.baseIndex + 'plugin/pack', {name: row.name})
+                    if (res.code == 0) {
+                        this.$message.success('打包成功')
+                        setTimeout(() => {
+                            this.$confirm('您需要下载该打包文件吗?', '提示', {
+                                confirmButtonText: '确定',
+                                cancelButtonText: '取消',
+                                type: 'warning'
+                            }).then(() => {
+                                window.location.href = '/' + row.name + '.zip'
+                            });
+                        }, 1500)
+                    } else {
+                        this.$message.error(res.msg)
+                    }
+                });
+            },
+            // 制作升级包
+            handleUpdate(row) {
+                this.updateForm.name = row.name
+                this.updateDialog = true
+            },
+            // 提交更新包信息
+            async doUpdateSubmit() {
+                let res = await request.post(this.baseIndex + 'plugin/update', this.updateForm)
+                if (res.code == 0) {
+                    this.$message.success(res.msg)
+                    this.updateDialog = false
+                    setTimeout(() => {
+                        this.$confirm('您需要下载该更新包文件吗?', '提示', {
+                            confirmButtonText: '确定',
+                            cancelButtonText: '取消',
+                            type: 'warning'
+                        }).then(() => {
+                            window.location.href = '/' + this.updateForm.name + '_update_' + this.updateForm.version + '.zip'
+                        });
+                    }, 1500)
+                } else {
+                    this.$message.error(res.msg)
+                }
+            },
+            // 上传
+            successHandle(file) {
+                this.installForm.package_url = file.data.url
+                this.installForm.name = file.data.name
+            },
+            // 安装
+            async install() {
+                let res = await request.post(this.baseIndex + 'plugin/import', this.installForm)
+                if (res.code == 0) {
+                    this.$message.success(res.msg)
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500)
+                } else {
+                    this.$message.error(res.msg)
+                }
+            }
+        }
+    });
+</script>
+</body>
+</html>

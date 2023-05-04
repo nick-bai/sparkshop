@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="zh-CN" xml:lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>商品评价</title>
+  <link rel="stylesheet" href="/default/static/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/default/static/css/style.css">
+  <link rel="stylesheet" href="/default/static/css/iconfont.css">
+  <link rel="stylesheet" href="/static/layui/css/layui.css">
+  <link rel="stylesheet" href="/default/static/css/user.css">
+  <script src="{__JS__}/jquery.min.js"></script>
+  <script src="{__JS__}/bootstrap.bundle.min.js"></script>
+  <script src="{__JS__}/meanmenu.min.js"></script>
+  <script src="/static/js/layui/layui.js"></script>
+  <script src="{__JS__}/notify_stand.js"></script>
+  <style>
+    .layui-timeline h3{font-size: 14px}
+    .layui-timeline p{font-size: 14px}
+  </style>
+</head>
+<body style="background: #f9f9f9;">
+{include file="public/header_no_nav"}
+<div class="user_container">
+  <div style="color: #757575">
+    <a href="/">首页</a> > 商品评价
+  </div>
+  <div class="user_content">
+    {include file="public/user_menu"}
+    <div class="content_detail" style="padding: 20px 20px;">
+      <h4 style="color: #757575;font-weight: 600;">商品评价</h4>
+      <div class="actions" style="float: right;position: relative;top: -22px;">
+        <div class="status-btn-box">
+          <a title="评价" class="btn-small btn-line-gray" style="margin-left: 10px;margin-top: 0" href="/index/user">返回</a>
+        </div>
+      </div>
+      <ul class="goods-list" style="margin-top: 10px">
+        {foreach name="$info['detail']" item="vo"}
+        <li>
+          <div class="figure figure-thumb">
+            <a href="/index/goods/{$vo['goods_id']}" target="_blank">
+              <img src="{$vo['logo']}" width="80" height="80" alt="{$vo['goods_name']}">
+            </a>
+          </div>
+          <div class="order_text">
+            <p class="name" style="margin: 0">
+              <a href="/index/goods/{$vo['goods_id']}" target="_blank" class="order_info">{$vo['goods_name']}{if
+                !empty($vo['rule'])}{$vo['rule']}{/if}</a>
+            </p>
+            <p class="price" style="color:#E9332D"> {:number_format($vo['price'], 2)}元 × {$vo['cart_num']} </p>
+          </div>
+        </li>
+        {/foreach}
+      </ul>
+      {if $info['user_comments'] == 1}
+      <form class="layui-form" action="">
+        <input type="hidden" name="order_id" value="{$info['id']}"/>
+        <input type="hidden" name="desc_match" id="desc_match" value="5"/>
+        <div class="layui-form-item">
+          <label class="layui-form-label">评价</label>
+          <div class="layui-input-block">
+            <input type="radio" name="type" value="1" title="<span class='iconfont icon-haoping' style='font-size:16px'>&nbsp;好评</span>" checked>
+            <input type="radio" name="type" value="2" title="<span class='iconfont icon-chaping' style='font-size:16px'>&nbsp;中评</span>">
+            <input type="radio" name="type" value="3" title="<span class='iconfont icon-chaping' style='font-size:16px'>&nbsp;差评</span>">
+          </div>
+        </div>
+
+        <div class="layui-form-item layui-form-text">
+          <label class="layui-form-label" style="width: 110px;">描述相符</label>
+          <div class="layui-input-block" style="margin-left: 110px">
+            <div id="star"></div>
+          </div>
+        </div>
+
+        <div class="layui-form-item layui-form-text">
+          <label class="layui-form-label">内容</label>
+          <div class="layui-input-block">
+            <textarea name="content" placeholder="请输入内容" class="layui-textarea" style="height: 200px;width: 660px"></textarea>
+          </div>
+        </div>
+
+        <div class="layui-form-item">
+          <label class="layui-form-label" style="width: 110px">评价图<br/>[最多3张]</label>
+          <div class="layui-input-block" style="margin-left: 110px;width: 660px">
+            <button type="button" class="layui-btn layui-btn-primary" id="comment-upload"><i class="layui-icon">&#xe67c;</i>上传</button>
+            <blockquote class="layui-elem-quote layui-quote-nm" style="margin-top: 10px;">
+              预览图：
+              <div class="layui-upload-list" id="comment-pic">
+
+              </div>
+            </blockquote>
+          </div>
+        </div>
+
+        <div class="layui-form-item">
+          <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="submit_comment" style="background: #E9332D">立即提交</button>
+          </div>
+        </div>
+      </form>
+      {else/}
+      <div class="layui-form">
+        <div class="layui-form-item">
+          <label class="layui-form-label"></label>
+          <div class="layui-input-block" style="width: 660px">
+            {if $comment['type'] == 1}
+            <span class='iconfont icon-haoping' style='font-size:16px;color:#E9332D'>&nbsp;好评</span>
+            {elseif $comment['type'] == 2}
+            <span class='iconfont icon-chaping' style='font-size:16px;color:#E9332D'>&nbsp;中评</span>
+            {else /}
+            <span class='iconfont icon-chaping' style='font-size:16px;color:#E9332D'>&nbsp;差评</span>
+            {/if}
+            <div id="star-rate" style="margin-left: 30px"></div>
+            <p style="color:#757575">
+              {$comment['content']}
+            </p>
+            <div style="margin-top: 20px">
+              {foreach name="$comment['pictures']" item="vo"}
+              <img src="{$vo}" alt="{$vo}" class="layui-upload-img" height="82px" width="82px" style="margin-left: 10px;border: 1px solid #e2e2e2;padding: 2px">
+              {/foreach}
+            </div>
+            <p style="margin-top: 15px;color:#757575">
+              评价时间：{$comment['create_time']}
+            </p>
+          </div>
+        </div>
+      </div>
+      {/if}
+    </div>
+  </div>
+</div>
+{include file="public/footer"}
+<div class="go-top">
+  <i class="iconfont icon-yooxi"></i>
+  <i class="iconfont icon-yooxi"></i>
+</div>
+<script>
+  var refundGoodsImg = 0;
+  var star = {if empty($comment)}5{else/}{$comment['desc_match']}{/if};
+  layui.use(['rate', 'form', 'upload'], function(){
+    var rate = layui.rate;
+    var form = layui.form;
+    var upload = layui.upload;
+
+    rate.render({
+      elem: '#star',
+      theme: '#E9332D',
+      value: 5,
+      choose: function(value) {
+        $('#desc_match').val(value);
+      }
+    });
+
+    rate.render({
+      elem: '#star-rate'
+      ,value: star
+      ,readonly: true
+      ,theme: '#E9332D'
+    });
+
+    form.on('submit(submit_comment)', function (res) {
+      $.post('/index/userOrder/appraise', res.field, function (res) {
+        if (res.code == 0) {
+          notify.success(res.msg);
+          setTimeout(function () {
+            window.location.reload();
+          }, 1000)
+        } else {
+          notify.error(res.msg);
+        }
+      }, 'json');
+      return false;
+    });
+
+    // 退款退货
+    upload.render({
+      elem: '#comment-upload'
+      ,url: '/index/upload/img'
+      ,multiple: true
+      ,before: function(obj) {
+        if (refundGoodsImg >= 3) {
+          notify.error('最多上传3张凭证');
+          return false;
+        }
+      }
+      ,done: function (res) {
+        refundGoodsImg += 1;
+        var _html = '<div class="refund-preview"><i class="layui-icon layui-icon-close-fill" style="cursor: pointer"></i>';
+        _html += '<input type="hidden" name="pictures[]" value="' + res.data.url + '"/>';
+        _html += '<img src="'+ res.data.url +'" alt="'+ res.data.url +'" class="layui-upload-img" style="margin-left: 10px" height="80px" width="80px">';
+        _html += '</div>';
+        $('#comment-pic').append(_html);
+
+        $('.layui-icon-close-fill').click(function () {
+          $(this).parent().remove();
+          refundGoodsImg -= 1;
+        });
+      }
+    });
+  });
+</script>
+</body>
+</html>

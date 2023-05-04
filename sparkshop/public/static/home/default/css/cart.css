@@ -1,0 +1,123 @@
+.footer-area, .copy-right-area, .middle-header-style-two {background: #fff;}
+.cart-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-all;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 13px;
+    margin-bottom: 5px !important;
+}
+.cart-check {
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    left: 0;
+    top: 20px;
+}
+.count {
+    overflow: hidden;
+    margin-left: -20px;
+}
+
+.count .num-jian,
+.input-num,
+.num-jia {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    line-height: 23px;
+    text-align: center;
+    font-size: 18px;
+    color: #999;
+    cursor: pointer;
+    border: 1px solid #e6e6e6;
+}
+
+.count .input-num {
+    width: 58px;
+    height: 28px;
+    color: #333;
+    border-left: 0;
+    font-size: 13px;
+    border-right: 0;
+}
+
+.count li {
+    list-style: none;
+    float: left;
+}
+.label-text {
+
+}
+.th-text {
+    height: 30px;
+    color: #5a5a5a
+}
+.info-box {
+    padding: 50px;
+    box-shadow: 10px 10px 5px #e2e2e2;
+    border: 1px solid #e2e2e2;
+    margin-left: 60px;
+    height: 320px;
+}
+.total-amount {
+    font-size: 20px;font-weight: 500;color:#e93323 !important;
+    height: 80px;
+}
+.total-number {
+    font-size: 20px;font-weight: 500;
+}
+.settlement {
+    width: 200px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    color: #fff;
+    cursor: pointer;
+    background: #e93323;
+    border-radius: 5px;
+}
+.bar {
+    height: 40px;
+    background: #f7f7f7
+}
+
+.bar-div {
+    height: 40px;
+    line-height: 40px;
+    text-align: left;
+    font-size: 12px
+}
+.cart-detail {
+    background: #fff;margin-top: 10px;padding: 30px 50px
+}
+.row-content {
+    border-bottom: 1px solid #e2e2e2;margin-top: 20px;padding: 5px 10px
+}
+.goods-info {
+    height: 90px;text-align: center;position: relative
+}
+.cart-price {
+    height: 90px;color: #e93323;font-weight: 500
+}
+.cart-rm {
+    height: 80px;color: #FFB800;cursor: pointer
+}
+.cart-list-total {
+    height: 80px;color:#e93323;font-weight: 500
+}
+.cart-rule {
+    color: #888;
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-all;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+.layui-laypage .layui-laypage-curr .layui-laypage-em {
+    background-color: #e93323 !important;
+}

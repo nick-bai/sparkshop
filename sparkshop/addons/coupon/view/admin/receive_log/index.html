@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>领取记录</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+</head>
+<body>
+<div id="app">
+    <div class="app-loading" v-if="pageLoading">
+        <div class="app-loading__logo">
+            <img src="{__IMG__}/logo.png"/>
+        </div>
+        <div class="app-loading__loader"></div>
+        <div class="app-loading__title">SparkShop</div>
+    </div>
+    <el-card class="box-card" v-else>
+        <div slot="header" class="clearfix">
+            <span>领取记录</span>
+        </div>
+        <div class="search-box">
+            <el-form :inline="true" :model="searchForm" class="demo-form-inline" label-width="80px">
+                <el-form-item label="是否有效">
+                    <el-select v-model="searchForm.status" placeholder="请选择" size="small" clearable>
+                        <el-option label="未使用" value="1"></el-option>
+                        <el-option label="已使用" value="2"></el-option>
+                        <el-option label="已过期" value="3"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="领取人">
+                    <el-input v-model="searchForm.user_name" placeholder="" clearable size="small"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="onSubmit" size="small" icon="el-icon-search">查询</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+        <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-bottom: 10px"></div>
+        <el-table
+                :data="tableData"
+                style="width: 100%;">
+            <el-table-column
+                    prop="id"
+                    width="100px"
+                    label="ID">
+            </el-table-column>
+            <el-table-column
+                    prop="coupon_name"
+                    label="优惠券名称">
+            </el-table-column>
+            <el-table-column
+                    prop="user_name"
+                    label="领取人">
+            </el-table-column>
+            <el-table-column
+                    prop="coupon.amount"
+                    label="面值">
+            </el-table-column>
+            <el-table-column
+                    prop="coupon.threshold_amount"
+                    label="门槛金额">
+            </el-table-column>
+            <el-table-column
+                    prop="coupon.end_time"
+                    label="有效期">
+            </el-table-column>
+            <el-table-column
+                    prop="status_txt"
+                    label="状态">
+            </el-table-column>
+            <el-table-column
+                    prop="used_time"
+                    label="使用日期">
+            </el-table-column>
+        </el-table>
+        <el-pagination
+                style="margin-top: 10px"
+                background
+                layout="->, prev, pager, next"
+                :page-size="searchForm.limit"
+                @current-change="handlePageChange"
+                :total="total">
+        </el-pagination>
+    </el-card>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                pageLoading: true,
+                searchForm: {
+                    user_name: '',
+                    status: '',
+                    limit: 15,
+                    page: 1
+                },
+                total: 1,
+                tableData: []
+            }
+        },
+        mounted() {
+            this.getList()
+            this.pageLoading = false
+        },
+        methods: {
+            // 获取列表
+            async getList() {
+                let res = await request.get('/addons/coupon/admin.receiveLog/index', this.searchForm)
+                this.tableData = res.data.data
+                this.total = res.data.total
+            },
+            // 搜索
+            onSubmit() {
+                this.getList()
+            },
+            // 分页
+            handlePageChange(page) {
+                this.searchForm.page = page
+                this.getList()
+            }
+        }
+    });
+</script>
+<style>
+    p {
+        padding: 0;
+        margin: 0;
+    }
+
+    .el-table__header tr,
+    .el-table__header th {
+        padding: 0;
+        height: 20px;
+        line-height: 20px;
+    }
+</style>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<template id="data-card">
+
+    <el-card class="box-card" shadow="false">
+        <div slot="header" class="clearfix">
+            <span>{{ title }}</span>
+            <el-tag type="success" style="float: right;margin-top: -4px">今日</el-tag>
+        </div>
+        <div class="data-content">
+            <div class="number">{{ data.yesterdayData }}</div>
+            <div class="grow-percent">
+                日环比：{{ data.dayRatio }}%
+                <i class="el-icon-caret-top" style="color:#F56C6C" v-if="data.dayRatio > 0"></i>
+                <i class="el-icon-caret-bottom" style="color:#67C23A" v-if="data.dayRatio < 0"></i>
+                &nbsp;&nbsp;
+                周环比 {{ data.weekRatio }}%
+                <i class="el-icon-caret-top" style="color:#F56C6C" v-if="data.weekRatio > 0"></i>
+                <i class="el-icon-caret-bottom" style="color:#67C23A" v-if="data.weekRatio < 0"></i>
+            </div>
+        </div>
+        <div class="card-footer">
+            本月{{ title }}：<span style="float: right;">{{ data.monthData }}{{ unit }}</span>
+        </div>
+    </el-card>
+
+</template>
+
+<script>
+    Vue.component('dataCard', {
+        template: '#data-card',
+        props: {
+            title: {
+                type: String,
+                default: ''
+            },
+            unit: {
+                type: String,
+                default: '元'
+            },
+            data: {
+                type: Object
+            }
+        },
+        data() {
+            return {
+
+            }
+        }
+    })
+</script>
+
+<style>
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .text {
+        font-size: 14px;
+    }
+
+    .item {
+        margin-bottom: 18px;
+    }
+
+    .data-content {
+        height: 90px;
+        width: 100%;
+    }
+
+    .data-content .number {
+        font-size: 30px;
+        margin-top: 10px;
+    }
+
+    .grow-percent {
+        height: 42px;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+
+    .card-footer {
+        margin-top: 5px;
+        height: 30px;
+        line-height: 30px;
+        font-size: 14px;
+    }
+</style>

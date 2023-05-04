@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>秒杀商品</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+</head>
+<body>
+{include file="../../../app/admin/view/default/components/goodsSingleSelect"}
+<div id="app">
+    <div class="app-loading" v-if="pageLoading">
+        <div class="app-loading__logo">
+            <img src="{__IMG__}/logo.png"/>
+        </div>
+        <div class="app-loading__loader"></div>
+        <div class="app-loading__title">SparkShop</div>
+    </div>
+    <el-card class="box-card" v-else>
+        <div slot="header" class="clearfix">
+            <span>秒杀商品</span>
+        </div>
+        <div class="search-box">
+            <el-form :inline="true" :model="searchForm" class="demo-form-inline">
+                <el-form-item label="商品名称">
+                    <el-input v-model="searchForm.name" placeholder="" clearable size="small"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="onSubmit" size="small" icon="el-icon-search" >查询</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+        <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-bottom: 10px"></div>
+        <el-button type="primary" icon="el-icon-plus" size="small" @click="addGoods" style="margin-top: 10px">添加商品</el-button>
+        <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-top: 15px"></div>
+        <el-table
+                :data="tableData"
+                style="width: 100%;">
+            <el-table-column
+                    width="70"
+                    prop="id"
+                    label="ID">
+            </el-table-column>
+            <el-table-column
+                    width="80"
+                    label="商品图片">
+                <template slot-scope="scope">
+                    <img :src="scope.row.pic" width="40px" height="40px"/>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="name"
+                    width="500"
+                    label="商品名">
+            </el-table-column>
+            <el-table-column
+                    prop="original_price"
+                    label="原价">
+            </el-table-column>
+            <el-table-column
+                    prop="seckill_price"
+                    label="秒杀价格">
+            </el-table-column>
+            <el-table-column
+                    prop="stock"
+                    label="秒杀库存">
+            </el-table-column>
+            <el-table-column
+                    width="200"
+                    label="秒杀时间">
+                <template slot-scope="scope">
+                    <p>{{ scope.row.start_time }}</p>
+                    <p>{{ scope.row.end_time }}</p>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    label="状态">
+                <template slot-scope="scope">
+                    <el-tag type="danger" v-if="scope.row.status == 1">未开启</el-tag>
+                    <el-tag type="success" v-if="scope.row.status == 2">进行中</el-tag>
+                    <el-tag type="info" v-if="scope.row.status == 3">已结束</el-tag>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="operation"
+                    label="操作">
+                <template slot-scope="scope">
+                    <el-button @click="handleEdit(scope.row)" type="text" size="small">编辑</el-button>
+                    <el-button @click="handleDel(scope.row)" type="text" size="small">删除</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+        <el-pagination
+                style="margin-top: 10px"
+                background
+                layout="->, prev, pager, next"
+                :page-size="searchForm.limit"
+                @current-change="handlePageChange"
+                :total="total">
+        </el-pagination>
+
+        <el-dialog :title="title" :visible.sync="dialogVisible" width="1000px" :close-on-click-modal="false" :destroy-on-close="true">
+            {include file="admin/seckill/save"}
+        </el-dialog>
+
+        <el-dialog
+                class="goods-select"
+                title=""
+                :visible.sync="goodsDialogVisible"
+                width="70%">
+            <goods-select @selected-goods="handleSelectedGoods" @close-dialog="goodsDialogVisible=false"></goods-select>
+        </el-dialog>
+    </el-card>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                pageLoading: true,
+                searchForm: {
+                    name: '',
+                    limit: 15,
+                    page: 1
+                },
+                dialogVisible: false,
+                baseIndex: '/{:config("shop.backend_index")}/',
+                title: '新增秒杀商品',
+                total: 1,
+                tableData: [],
+                dialogCateVisible: false,
+                seckillGoods: [],
+                form: {
+                    id: 0,
+                    pic: '',
+                    goods_id: '',
+                    goods_rule: '',
+                    goods_price: '',
+                    seckill_price: '',
+                    goods_stock: '',
+                    stock: 0,
+                    name: '',
+                    desc: '',
+                    activity_time: '',
+                    seckill_time_id: '',
+                    total_buy_num: 0,
+                    once_buy_num: 0,
+                    is_open: 2,
+                    final: [],
+                    rule: []
+                },
+                pickerOptions: {
+                    shortcuts: [{
+                        text: '最近一周',
+                        onClick(picker) {
+                            const end = new Date();
+                            const start = new Date();
+                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+                            picker.$emit('pick', [start, end]);
+                        }
+                    }, {
+                        text: '最近一个月',
+                        onClick(picker) {
+                            const end = new Date();
+                            const start = new Date();
+                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+                            picker.$emit('pick', [start, end]);
+                        }
+                    }, {
+                        text: '最近三个月',
+                        onClick(picker) {
+                            const end = new Date();
+                            const start = new Date();
+                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+                            picker.$emit('pick', [start, end]);
+                        }
+                    }]
+                },
+                rules: {
+                    name: [
+                        { required: true, message: '请输入商品标题', trigger: 'blur' }
+                    ],
+                    desc: [
+                        { required: true, message: '请输入秒杀活动简介', trigger: 'blur' }
+                    ],
+                    activity_time: [
+                        { required: true, message: '请输入活动时间', trigger: 'blur' }
+                    ],
+                    seckill_time_id: [
+                        { required: true, message: '请选择秒杀时间段', trigger: 'blur' }
+                    ],
+                    total_buy_num: [
+                        { required: true, message: '请输入购买总数', trigger: 'blur' }
+                    ],
+                    once_buy_num: [
+                        { required: true, message: '请输入单次购买数量', trigger: 'blur' }
+                    ]
+                },
+                loading: false,
+                seckill_time: [],
+                goodsDialogVisible: false,
+                tableHead: []
+            }
+        },
+        mounted() {
+            this.getList()
+            this.pageLoading = false
+        },
+        methods: {
+            // 获取列表
+            async getList() {
+                let res = await request.get('/addons/seckill/admin.seckill/index', this.searchForm)
+                this.tableData = res.data.data
+                this.total = res.data.total
+            },
+            // 添加商品
+            async addGoods() {
+                this.title = '新增秒杀商品'
+                this.dialogVisible = true
+                this.initForm()
+
+                let res = await request.get('/addons/seckill/admin.seckill/add')
+                if (res.code == 0) {
+                    this.seckill_time = res.data.seckill_time
+                }
+            },
+            // 搜索
+            onSubmit() {
+                this.getList()
+            },
+            // 编辑商品
+            async handleEdit(row) {
+                let data = JSON.parse(JSON.stringify(row))
+                this.title = '编辑秒杀商品'
+                this.dialogVisible = true
+
+                this.form = data
+                this.form.activity_time = [data.start_time, data.end_time]
+
+                let res = await request.get('/addons/seckill/admin.seckill/edit', {activity_id: data.id})
+                if (res.code == 0) {
+                    this.seckill_time = res.data.seckill_time
+                    if (row.goods_rule == 2) { // 多规格
+                        this.form.rule = JSON.parse(data.seckill_goods_rule)
+                        this.makeRule(JSON.parse(data.seckill_goods_rule), res.data.jsonInfo, 2)
+                    } else { // 单规格
+                        this.form.rule = []
+                        this.seckillGoods = []
+                        res.data.jsonInfo.forEach(item => {
+                            this.seckillGoods.push({
+                                id: item.id,
+                                sku: '',
+                                pic: item.image,
+                                goods_id: item.goods_id,
+                                goods_price: item.goods_price,
+                                seckill_price: item.seckill_price,
+                                goods_stock: item.goods_stock,
+                                stock: item.stock
+                            })
+                        })
+                    }
+
+                    this.$nextTick(() => {
+                        this.seckillGoods.forEach(item => {
+                            this.$refs.multipleTable.toggleRowSelection(item);
+                        })
+                    })
+                }
+            },
+            // 删除商品
+            handleDel(item) {
+                this.$confirm('此操作将永久删除该商品, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    let res = await request.get('/addons/seckill/admin.seckill/del', {id: item.id})
+                    if (res.code == 0) {
+                        this.$message.success(res.msg)
+                        this.getList()
+                    } else {
+                        this.$message.error(res.msg)
+                    }
+                }).catch(() => {});
+            },
+            // 分页
+            handlePageChange(page) {
+                this.searchForm.page = page
+                this.getList()
+            },
+            // 初始化表单
+            initForm() {
+                this.form = {
+                    id: 0,
+                    pic: '',
+                    goods_id: '',
+                    goods_rule: '',
+                    goods_price: '',
+                    seckill_price: '',
+                    goods_stock: '',
+                    stock: 0,
+                    name: '',
+                    desc: '',
+                    activity_time: '',
+                    seckill_time_id: '',
+                    total_buy_num: 0,
+                    once_buy_num: 0,
+                    is_open: 2,
+                    final: [],
+                    rule: []
+                }
+
+                this.seckillGoods = []
+                this.tableHead = []
+            },
+            // 新增或编辑
+            optSubmit(formName) {
+                this.$refs[formName].validate(async (valid) => {
+                    if (valid) {
+                        if (this.form.goods_rule == 2 && this.form.final.length == 0) {
+                            this.$message.error('请勾选秒杀商品')
+                            return false
+                        }
+
+                        if (this.form.goods_rule == 1 && this.form.goods_id == '') {
+                            this.$message.error('请勾选秒杀商品')
+                            return false
+                        }
+
+                        if (this.form.goods_rule == 1) {
+                            this.form.seckill_price = this.seckillGoods[0].seckill_price
+                            this.form.stock = this.seckillGoods[0].stock
+                        } else {
+                            let sku2Info = new Map()
+                            this.seckillGoods.forEach(item => {
+                                sku2Info.set(item.sku.join('※'), {
+                                    seckill_price: item.seckill_price,
+                                    stock: item.stock
+                                })
+                            })
+
+                            this.form.final.forEach((item, index) => {
+                                let key = item.sku.join('※')
+                                this.form.final[index].seckill_price = sku2Info.get(key).seckill_price
+                                this.form.final[index].stock = sku2Info.get(key).stock
+                            })
+                        }
+
+                        this.loading = true
+                        let res;
+                        if (this.form.id) {
+                            res = await request.post('/addons/seckill/admin.seckill/edit', this.form)
+                        } else {
+                            res = await request.post('/addons/seckill/admin.seckill/add', this.form)
+                        }
+                        this.loading = false
+                        if (res.code == 0) {
+                            this.dialogVisible = false
+                            this.$message.success(res.msg)
+                            this.getList()
+                        } else {
+                            this.$message.error(res.msg)
+                        }
+                    }
+                });
+            },
+            // 选择商品弹层
+            selectGoods() {
+                this.goodsDialogVisible = true
+            },
+            // 复选框选择商品
+            handleSelectionChange(row) {
+                if (row.length > 0) {
+                    this.form.pic = row[0].pic
+                    this.form.goods_id = row[0].goods_id
+                    this.form.goods_price = row[0].goods_price
+                    this.form.seckill_price = row[0].seckill_price
+                    this.form.goods_stock = row[0].goods_stock
+                    this.form.stock = row[0].stock
+
+                    this.form.final = []
+                    if (this.form.goods_rule == 2) {
+                        row.forEach(item => {
+                            this.form.final.push({
+                                sku: item.sku,
+                                image: item.pic,
+                                goods_id: item.goods_id,
+                                goods_price: item.goods_price,
+                                seckill_price: item.seckill_price,
+                                goods_stock: item.goods_stock,
+                                stock: item.stock
+                            });
+                        })
+                    }
+                } else {
+                    this.form.pic = ''
+                    this.form.goods_id = ''
+                    this.form.goods_price = ''
+                    this.form.seckill_price = ''
+                    this.form.goods_stock = ''
+                    this.form.stock = 0
+                    this.form.final = []
+                }
+            },
+            // 点击确定选择的商品
+            async handleSelectedGoods(row) {
+                this.form.name = row[0].name
+                this.form.desc = row[0].name
+                // 单规格
+                if (row[0].spec == 1) {
+                    this.seckillGoods = [
+                        {
+                            pic: row[0].pic,
+                            goods_id: row[0].id,
+                            goods_rule: '',
+                            goods_price: row[0].price,
+                            seckill_price: row[0].price,
+                            goods_stock: row[0].stock,
+                            stock: row[0].stock
+                        }
+                    ];
+
+                    this.form.goods_rule = 1
+                    this.tableHead = []
+                } else { // 多规格
+                    this.form.goods_rule = 2
+                    let res = await request.get(this.baseIndex + 'goodsRule/getRuleByGoodsId', {goods_id: row[0].id})
+                    // 原始商品的rule
+                    this.form.rule = JSON.parse(res.data.ruleData.rule)
+                    this.makeRule(JSON.parse(res.data.ruleData.rule), res.data.extend, 1)
+                }
+
+                this.goodsDialogVisible = false
+            },
+            // 生成规则
+            makeRule(preItem, extend, type) {
+                let titleMap = [];
+                this.seckillGoods = []
+                preItem.forEach((item, index) => {
+                    let data = item.item.filter(function (s) {
+                        return s && s.trim();
+                    })
+                    if (item.title != '' && data.length > 0) {
+                        titleMap.push({label: item.title, property: index})
+                    }
+                })
+
+                if (type == 1) {
+                    extend.forEach(item => {
+                        this.seckillGoods.push({
+                            id: item.id,
+                            sku: item.sku.split('※'),
+                            pic: item.image,
+                            goods_id: item.goods_id,
+                            goods_price: item.price,
+                            seckill_price: item.price,
+                            goods_stock: item.stock,
+                            stock: item.stock
+                        })
+                    })
+                } else {
+                    extend.forEach(item => {
+                        this.seckillGoods.push({
+                            id: item.id,
+                            sku: item.sku.split('※'),
+                            pic: item.image,
+                            goods_id: item.goods_id,
+                            goods_price: item.goods_price,
+                            seckill_price: item.seckill_price,
+                            goods_stock: item.goods_stock,
+                            stock: item.stock
+                        })
+                    })
+                }
+
+                this.tableHead = titleMap
+            }
+        }
+    });
+</script>
+<style>
+    .el-table__header tr,
+    .el-table__header th {
+        padding: 0;
+        height: 20px;
+        line-height: 20px;
+    }
+    p { padding: 0;
+        margin: 0;}
+    .primary {
+        color: #FFF;
+        background-color: #409EFF;
+        border-color: #409EFF;
+    }
+
+    .goods-select .el-dialog__header {
+        display: none;
+    }
+    .goods-select  .el-dialog__body {padding: 0;}
+</style>
+</body>
+</html>

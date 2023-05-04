@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>友链管理</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+</head>
+<body>
+<div id="app">
+    <div class="app-loading" v-if="pageLoading">
+        <div class="app-loading__logo">
+            <img src="{__IMG__}/logo.png"/>
+        </div>
+        <div class="app-loading__loader"></div>
+        <div class="app-loading__title">{$title}</div>
+    </div>
+    <el-card class="box-card" v-else>
+        <div slot="header" class="clearfix">
+            <span>友链管理</span>
+        </div>
+        <div class="search-box">
+            <el-form :inline="true" :model="searchForm" class="demo-form-inline">
+                <el-form-item label="友链标题">
+                    <el-input v-model="searchForm.name" placeholder="" clearable size="small"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="onSubmit" size="small" icon="el-icon-search">查询</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+        <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-bottom: 10px"></div>
+        <el-button type="primary" icon="el-icon-plus" size="small" @click="addLinks" style="margin-top: 10px">添加友链</el-button>
+        <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-top: 10px"></div>
+        <el-table
+                :data="tableData"
+                style="width: 100%;">
+            <el-table-column
+                    prop="id"
+                    label="ID"
+                    width="75px">
+            </el-table-column>
+            <el-table-column
+                    prop="name"
+                    label="友链标题">
+            </el-table-column>
+            <el-table-column
+                    prop="url"
+                    label="友链地址">
+            </el-table-column>
+            <el-table-column
+                    label="打开方式"
+                    width="100px">
+                <template slot-scope="scope">
+                    <el-tag type="success" v-if="scope.row.target == 1">新页面</el-tag>
+                    <el-tag type="primary" v-if="scope.row.target == 2">本页面</el-tag>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    label="状态"
+                    width="100px">
+                <template slot-scope="scope">
+                    <el-tag type="success" v-if="scope.row.status == 1">启用</el-tag>
+                    <el-tag type="danger" v-if="scope.row.status == 2">禁用</el-tag>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="create_time"
+                    label="创建时间">
+            </el-table-column>
+            <el-table-column
+                    prop="operation"
+                    label="操作">
+                <template slot-scope="scope">
+                    <el-button @click="handleEdit(scope.row)" type="text" size="small">编辑</el-button>
+                    <el-button @click="handleDel(scope.row)" type="text" size="small">删除</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+        <el-pagination
+                style="margin-top: 10px"
+                background
+                layout="->, prev, pager, next"
+                :page-size="searchForm.limit"
+                @current-change="handlePageChange"
+                :total="total">
+        </el-pagination>
+
+        <el-dialog :title="title" :visible.sync="dialogVisible" width="500px" destroy-on-close>
+            {include file="/links/save"}
+        </el-dialog>
+    </el-card>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                pageLoading: true,
+                searchForm: {
+                    name: '',
+                    limit: 15,
+                    page: 1
+                },
+                dialogVisible: false,
+                title: '新增友链',
+                total: 1,
+                tableData: [],
+                baseIndex: '/{:config("shop.backend_index")}/',
+                form: {
+                    id: 0,
+                    name: '',
+                    url: '',
+                    target: 1,
+                    status: 1
+                },
+                rules: {
+                    name: [
+                        {required: true, message: '请输入友链名称', trigger: 'blur'}
+                    ],
+                    url: [
+                        {required: true, message: '请输入友链地址', trigger: 'blur'}
+                    ]
+                },
+                loading: false
+            }
+        },
+        mounted() {
+            this.getList()
+            this.pageLoading = false
+        },
+        methods: {
+            // 获取列表
+            async getList() {
+                let res = await request.get(this.baseIndex + 'links/index', this.searchForm)
+                this.tableData = res.data.data
+                this.total = res.data.total
+            },
+            // 初始化表单
+            initForm() {
+                this.form = {
+                    id: 0,
+                    name: '',
+                    url: '',
+                    target: 1,
+                    status: 1
+                }
+            },
+            // 搜索
+            onSubmit() {
+                this.getList()
+            },
+            addLinks() {
+                this.title = '添加友链'
+                this.initForm()
+                this.dialogVisible = true
+            },
+            // 编辑参数
+            handleEdit(item) {
+                this.title = '编辑友链'
+                this.dialogVisible = true
+
+                this.form.id = item.id
+                this.form.name = item.name
+                this.form.url = item.url
+                this.form.target = item.target
+                this.form.status = item.status
+            },
+            // 删除参数
+            handleDel(item) {
+                this.$confirm('此操作将永久删除该友链 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    let res = await request.get(this.baseIndex + 'links/del', {id: item.id})
+                    if (res.code == 0) {
+                        this.$message.success(res.msg)
+                        this.getList()
+                    } else {
+                        this.$message.error(res.msg)
+                    }
+                }).catch(() => {
+                });
+            },
+            // 分页
+            handlePageChange(page) {
+                this.searchForm.page = page
+                this.getList()
+            },
+            // 新增或编辑
+            optSubmit(formName) {
+                this.$refs[formName].validate(async (valid) => {
+                    if (valid) {
+                        this.loading = true
+                        let res;
+                        if (this.form.id) {
+                            res = await request.post(this.baseIndex + 'links/edit', this.form)
+                        } else {
+                            res = await request.post(this.baseIndex + 'links/add', this.form)
+                        }
+                        this.loading = false
+                        if (res.code == 0) {
+                            this.dialogVisible = false
+                            this.$message.success(res.msg)
+                            this.getList()
+                        } else {
+                            this.$message.error(res.msg)
+                        }
+                    }
+                });
+            }
+        }
+    });
+</script>
+<style>
+    p {
+        padding: 0;
+        margin: 0;
+    }
+
+    .el-table__header tr,
+    .el-table__header th {
+        padding: 0;
+        height: 20px;
+        line-height: 20px;
+    }
+
+    .del-btn {
+        cursor: pointer;
+        color: #F56C6C
+    }
+
+    .add-btn {
+        cursor: pointer;
+        margin-top: 18px;
+        color: #409EFF
+    }
+</style>
+</body>
+</html>

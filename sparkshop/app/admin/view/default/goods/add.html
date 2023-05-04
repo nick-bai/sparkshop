@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>添加商品</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+</head>
+<body>
+<!-- 组件导入 -->
+{include file="/components/fileSelect"}
+{include file="/components/ueditor"}
+<div id="app">
+    <el-card class="box-card">
+        <div slot="header" class="clearfix">
+            <span @click="goBack()" style="cursor: pointer;color: #66b1ff">&lt; 返回</span>
+            <el-divider direction="vertical"></el-divider>
+            <span>添加商品</span>
+        </div>
+        <el-tabs v-model="activeName">
+            <el-tab-pane label="基础设置" name="1">
+                {include file='/goods/item/base'}
+            </el-tab-pane>
+            <el-tab-pane label="规格库存" name="2">
+                {include file='/goods/item/rule'}
+            </el-tab-pane>
+            <el-tab-pane label="商品详情" name="3">
+                <ueditor @input="ueditorContent"></ueditor>
+                <div style="margin-top: 10px;margin-left: 80px">
+                    <el-button @click="pre" size="small">上一步</el-button>
+                    <el-button type="primary" @click="next" size="small">下一步</el-button>
+                </div>
+            </el-tab-pane>
+            <el-tab-pane label="物流配置" name="4" v-if="showExpress">
+                <el-form ref="form" :model="form" label-width="80px">
+                    <el-form-item label="邮费设置">
+                        <el-radio-group v-model="form.freight">
+                            <el-radio :label="1">固定运费</el-radio>
+                            <el-radio :label="2">运费模板</el-radio>
+                        </el-radio-group>
+                    </el-form-item>
+                    <el-form-item label="邮费" v-if="form.freight == 1">
+                        <el-input v-model="form.postage" type="number" placeholder="" style="width:500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="运费模板" v-if="form.freight == 2">
+                        <el-select v-model="form.shipping_tpl_id" placeholder="请选择" style="width:500px">
+                            <el-option
+                                    v-for="item in tpl"
+                                    :key="item.id"
+                                    :label="item.name"
+                                    :value="item.id">
+                            </el-option>
+                        </el-select>
+                    </el-form-item>
+
+                    <div style="margin-top: 10px;margin-left: 80px">
+                        <el-button @click="pre" size="small">上一步</el-button>
+                        <el-button type="primary" @click="next" size="small">下一步</el-button>
+                    </div>
+                </el-form>
+            </el-tab-pane>
+            <el-tab-pane label="其他设置" name="5">
+                {include file='/goods/item/other'}
+            </el-tab-pane>
+        </el-tabs>
+
+        <el-dialog title="" :visible.sync="dialogVisible" width="1200px" class="image-check-dialog">
+            <file-select :need-select="true" @selected-img="selectedImg" @close-dialog="dialogVisible=false" :select-num="slider_limit"></file-select>
+        </el-dialog>
+
+        <el-dialog title="" :visible.sync="batchDialogVisible" width="1200px" class="image-check-dialog">
+            <file-select :need-select="true" @selected-img="selectedBatchImg" @close-dialog="batchDialogVisible=false" :select-num="slider_batch_limit"></file-select>
+        </el-dialog>
+    </el-card>
+</div>
+
+<script>
+    let rule = {$rule|raw};
+    let cate = {$cate|raw};
+    let attr = {$attr|raw};
+    let label = {$label|raw};
+    let tpl = {$tpl|raw};
+
+    new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                baseIndex: '/{:config("shop.backend_index")}/',
+                activeName: '1',
+                dialogVisible: false,
+                batchDialogVisible: false,
+                selectImgIndex: -1,
+                rule: rule,
+                cate: cate,
+                attr: attr,
+                label: label,
+                tpl: tpl,
+                treeProps: {
+                    value: 'id',
+                    label: 'name',
+                    children: 'child',
+                    checkStrictly: true
+                },
+                preItem: [],
+                final: [],
+                ruleItem: {
+                    'title': '',
+                    'item': ['']
+                },
+                cateId: [],
+                tableHead: [],
+                ruleTableItem: {
+                    sku: [],
+                    image: '',
+                    price: '0.00',
+                    cost_price: '0.00',
+                    original_price: '0.00',
+                    stock: 0,
+                    spu: '',
+                    weight: '0.00',
+                    volume: '0.00'
+                },
+                selectRule: '',
+                attr_table: [],
+                label_id: [],
+                form: {
+                    type: 1,
+                    cate_id: '',
+                    name: '',
+                    sub_name: '',
+                    unit: '个',
+                    slider_image: [],
+                    video_src: '',
+                    is_show: '1',
+                    spec: '1',
+                    price: '0.00',
+                    original_price: '0.00',
+                    cost_price: '0.00',
+                    stock: 0,
+                    spu: '',
+                    weight: '0.00',
+                    volume: '0.00',
+                    preItem: [],
+                    final: [],
+                    content: '',
+                    freight: 1,
+                    postage: '0.00',
+                    shipping_tpl_id: '',
+                    seo_title: '',
+                    seo_keywords: '',
+                    seo_desc: '',
+                    attr_tpl_id: '',
+                    attr_item: [],
+                    attr_value: [],
+                    is_hot: '',
+                    is_recommend: '',
+                    is_new: '',
+                    label_id: ''
+                },
+                slider_limit: 8,
+                slider_batch_limit: 1,
+                rules: {
+                    type: [
+                        { required: true, message: '请选择商品类型', trigger: 'blur' }
+                    ],
+                    cate_id: [
+                        { required: true, message: '请选择商品分类', trigger: 'blur' }
+                    ],
+                    name: [
+                        { required: true, message: '请输入商品名称', trigger: 'blur' }
+                    ],
+                    unit: [
+                        { required: true, message: '请输入单位', trigger: 'blur' }
+                    ],
+                    slider_image: [
+                        { required: true, message: '请请选择商品图', trigger: 'blur' }
+                    ],
+                    is_show: [
+                        { required: true, message: '请选择是否上架', trigger: 'blur' }
+                    ],
+                    spec: [
+                        { required: true, message: '请选择规格', trigger: 'blur' }
+                    ]
+                },
+                batchTitle: '',
+                batchVisible: false,
+                setField: '',
+                batchForm: {
+                    field: ''
+                },
+                showExpress: true
+            }
+        },
+        watch: {
+            'form.type': function (newVal) {
+                if (newVal == 2) {
+                    this.showExpress = false
+                } else {
+                    this.showExpress = true
+                }
+            }
+        },
+        mounted() {
+
+        },
+        methods: {
+            // 选择商品类型
+            checkType(type) {
+                this.form.type = type
+            },
+            // 返回
+            goBack() {
+                history.go(-1)
+            },
+            // 下一步
+            next() {
+                if (this.form.type == 2 && this.activeName == 3) {
+                    this.activeName = (parseInt(this.activeName) + 2) + ''
+                } else {
+                    this.activeName = (parseInt(this.activeName) + 1) + ''
+                }
+            },
+            // 上一步
+            pre() {
+                if (this.form.type == 2 && this.activeName == 5) {
+                    this.activeName = (parseInt(this.activeName) - 2) + ''
+                } else {
+                    this.activeName = (parseInt(this.activeName) - 1) + ''
+                }
+            },
+            // 选择了图片
+            selectedImg(item) {
+                if ((this.form.slider_image.length + item.length) > this.slider_limit) {
+                    this.$message.error('您还可以选择' + (this.slider_limit - parseInt((this.form.slider_image.length + item.length))) + '张商品图')
+                    return false;
+                }
+                item.forEach(vo => {
+                    this.form.slider_image.push(vo.url)
+                })
+                this.dialogVisible = false
+            },
+            // 删除图片
+            removeSlider(index) {
+                this.form.slider_image.splice(index, 1)
+            },
+            // 选择图
+            showImage() {
+                this.dialogVisible = true
+            },
+            // 上传视频
+            videoHandle(item) {
+                this.form.video_src = item.data.url
+            },
+            beforeVideoUpload(file) {
+                const isMP4 = file.type === 'video/mp4';
+                if (!isMP4) {
+                    this.$message.error('上传视频图片只能是 MP4 格式!');
+                }
+
+                return isMP4;
+            },
+            // 删除规格
+            delItem(tableIndex, index) {
+                this.preItem[tableIndex].item.splice(index, 1);
+            },
+            addRule() {
+                let item = JSON.parse(JSON.stringify(this.ruleItem))
+                this.preItem.push(item)
+            },
+            // 生成规则
+            makeRule() {
+                let titleMap = [];
+                let preList = [];
+                this.preItem.forEach((item, index) => {
+                    let data = item.item.filter(function (s) {
+                        return s && s.trim();
+                    })
+                    if (item.title != '' && data.length > 0) {
+                        titleMap.push({label: item.title, property: index})
+                        preList.push(item.item)
+                    }
+                })
+
+                let descartes = this.calcDescartes(preList)
+                this.final = [];
+                this.ruleTableItem = {
+                    sku: [],
+                    image: '',
+                    price: '0.00',
+                    cost_price: '0.00',
+                    original_price: '0.00',
+                    stock: 0,
+                    spu: '',
+                    weight: '0.00',
+                    volume: '0.00'
+                };
+                descartes.forEach(item => {
+                    if (item instanceof Array) {
+                        let len = item.length;
+                        item.forEach((vo, index) => {
+                            if (!vo) {
+                                item.splice(index, 1)
+                            }
+                        })
+
+                        if (len != item.length) {
+                            return;
+                        }
+                    } else if (item == '') {
+                        return;
+                    }
+
+                    this.ruleTableItem.sku = (item instanceof Array) ? item : [item]
+                    let tableIem = JSON.parse(JSON.stringify(this.ruleTableItem))
+                    this.final.push(tableIem)
+                })
+                this.tableHead = titleMap
+            },
+            // 删除规格标题
+            delTitle(index) {
+                this.preItem.splice(index, 1);
+            },
+            // 添加新的节点
+            addNewItem(index) {
+                this.preItem[index].item.push('');
+            },
+            // 计算笛卡尔积
+            calcDescartes(array) {
+                if (array.length < 2) return array[0] || [];
+
+                return array.reduce((total, currentValue) => {
+                    let res = [];
+
+                    total.forEach(t => {
+                        currentValue.forEach(cv => {
+                            if (t instanceof Array) 	// 或者使用 Array.isArray(t)
+                                res.push([...t, cv]);
+                            else
+                                res.push([t, cv]);
+                        })
+                    })
+                    return res;
+                })
+            },
+            // 批量设置
+            setBatch(field, title) {
+                this.batchTitle = title
+                this.batchVisible = true
+                this.setField = field
+            },
+            // 批量设置
+            batchFormSubmit() {
+                if (this.batchForm.field == '') {
+                    this.$message.error('请输入正确的值')
+                    return false
+                }
+
+                this.final.map(item => {
+                    if (this.setField != 'stock' && this.setField != 'spu') {
+                        item[this.setField] = Number(this.batchForm.field).toFixed(2)
+                    } else {
+                        item[this.setField] = this.batchForm.field
+                    }
+                })
+
+                this.batchForm.field = ''
+                this.batchVisible = false
+            },
+            // 选择预设的规格
+            handleSelectRule(ruleId) {
+                this.rule.forEach(item => {
+                    if (item.id == ruleId) {
+                        this.preItem = item.value
+                    }
+                })
+
+                if (this.final.length > 0) {
+                    this.final = [];
+                }
+            },
+            // 批量设置图片
+            selectedBatchImg(img) {
+
+                if (parseInt(this.selectImgIndex) >= 0) {
+                    this.final[parseInt(this.selectImgIndex)].image = img[0].url
+                    this.selectImgIndex = -1
+                } else {
+                    this.final.map(item => {
+                        item.image = img[0].url
+                    })
+                }
+
+                this.batchDialogVisible = false
+            },
+            // 选择单个图片
+            setOneImg(index) {
+                this.batchDialogVisible = true
+                this.selectImgIndex = index
+            },
+            // 删过单个图片
+            rmImg(index) {
+                this.final[parseInt(index)].image = ''
+            },
+            // 选择规则里面的下一步
+            ruleNext() {
+                if (this.form.spec == 2 && this.final.length == 0) {
+                    this.$message.error('请生成多规格属性！')
+                    return false;
+                }
+
+                this.activeName = (parseInt(this.activeName) + 1) + ''
+            },
+            // 富文本输入
+            ueditorContent(content) {
+                this.form.content = content
+            },
+            // 保存
+            async saveGoods() {
+                this.attr_table.forEach(item => {
+                    this.form.attr_item.push(item.item)
+                    this.form.attr_value.push(item.value)
+                })
+                this.form.label_id = this.label_id.join(',')
+                this.form.preItem = this.preItem
+                this.form.final = this.final
+
+                let res = await request.post(this.baseIndex + "goods/add", this.form)
+                if (res.code == 0) {
+                    this.$message.success('操作成功')
+                    setTimeout(() => {
+                        window.location.href = this.baseIndex + "goods/index"
+                    }, 500);
+                } else {
+                    this.$message.error(res.msg)
+                }
+            },
+            // 选择商品参数
+            handleSelectTpl(val) {
+                if (!val) {
+                    this.attr_table = []
+                    return ;
+                }
+
+                this.attr.forEach(item => {
+                    if (val == item.id) {
+
+                        let tableArr = [];
+                        let value = item.value.value;
+                        item.value.item.forEach((val, index) => {
+                            tableArr.push({
+                                item: val,
+                                value: value[index]
+                            });
+                        })
+
+                        this.attr_table = tableArr
+                    }
+                })
+            },
+            // 移除参数
+            rmAttr(index) {
+                this.attr_table.splice(index, 1)
+            },
+            // 添加参数
+            addAttr() {
+                this.attr_table.push({
+                    item: '',
+                    value: ''
+                });
+            },
+            // 删除属性
+            handleDel(index) {
+                this.final.splice(index, 1)
+            }
+        }
+    })
+</script>
+<style>
+    .el-tabs__item {
+        font-weight: 400;
+    }
+    .goods-type li {
+        float: left;
+        display: block;
+        list-style: none;
+        padding: 0;
+        width: 120px;
+        height: 60px;
+        background-color: rgb(255, 255, 255);
+        border: 1px solid rgb(226, 226, 226);
+        overflow: hidden;
+        cursor: pointer;
+        position: relative;
+        text-align: center;
+        line-height: 113px;
+    }
+    .goods-type-active {
+        border: 1px solid rgb(17, 161, 253) !important;
+    }
+    .goods-type-active div:first-child {
+        color: rgb(17, 161, 253);
+    }
+    .goods-type li div {
+        height: 25px;
+        text-align: center;
+        line-height: 25px;
+    }
+    .goods-type-active .icon {
+        height: 40px;
+        width: 40px;
+        display: block;
+        background-image: url(/static/admin/default/img/success.png);
+        background-position: 76px 78px;
+        position: relative;
+        right: -86px;
+        top: -31px;
+    }
+    .goods-type .el-form-item__content {
+        margin-left: 0 !important;
+    }
+    .img-list {
+        height: 60px;
+        padding-left: 0;
+        margin-top: 0;
+    }
+    .img-list li:first-child {
+        margin-left: 0;
+    }
+
+    .img-list li {
+        width: 58px;
+        height: 58px;
+        float: left;
+        margin-left: 5px;
+        cursor: pointer;
+        position: relative;
+    }
+    .img-list li .img-tools {
+        position: absolute;
+        width: 58px;
+        height: 15px;
+        line-height: 15px;
+        text-align: center;
+        top: 43px;
+        background: rgba(0, 0, 0, 0.6);
+    }
+    .addImg {height: 56px;width: 56px;line-height: 56px;text-align: center;border: 1px dashed rgb(221, 221, 221)}
+    .image-check-dialog .el-dialog__header {display: none}
+    .image-check-dialog .el-dialog__body {padding: 0;}
+    .is-uploading {width: 150px !important}
+    .is-success {width: 150px !important}
+    .del-btn {cursor: pointer;color: #F56C6C}
+    .add-btn {cursor: pointer;margin-top: 18px;color: #409EFF}
+    .up-item-img {
+        width: 50px;
+        height: 50px;
+        border: 1px
+        dashed #c2c2c2;
+        text-align: center;
+        line-height: 50px;
+        cursor: pointer;
+    }
+    .cell .img-tools {
+        position: absolute;
+        width: 50px;
+        height: 15px;
+        line-height: 15px;
+        text-align: center;
+        top: 43px;
+        background: rgba(0, 0, 0, 0.6);
+        cursor: pointer;
+    }
+</style>
+</body>
+</html>

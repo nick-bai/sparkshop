@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户登录</title>
+    <link rel="stylesheet" href="/static/js/layui/css/layui.css">
+    <link rel="stylesheet" href="{__CSS__}/login.css">
+    <link rel="stylesheet" type="text/css" href="{__JS__}/message/message.css">
+</head>
+<body>
+<div class="login-box">
+    <div class="banner">
+        <h3 class="shop-title">坚持做优秀的开源商城系统</h3>
+    </div>
+    <div class="login-content-box">
+        <div class="header">
+            <div class="logo">
+                <img src="{__IMG__}/logo.png" height="40px"/>
+            </div>
+        </div>
+        <div class="login-form">
+            <div class="login_tab">
+                <div class="login_label label_active">登录</div>
+                <div class="login_label" style="margin-left: 20px">注册</div>
+            </div>
+            <div class="login_form_box">
+                <div id="phone_login">
+                    <div class="form_input_div">
+                        <input type="text" name="phone" class="form_input login_phone" placeholder="请输入手机号"/>
+                    </div>
+                    <div class="form_input_div" style="margin-top: 20px">
+                        <input type="password" name="password" class="form_input login_pwd" placeholder="请输入密码"/>
+                    </div>
+                </div>
+                <div id="phone_code_login" style="display: none">
+                    <div class="form_input_div">
+                        <input type="text" name="phone" class="form_input login_code_phone" placeholder="请输入手机号"/>
+                    </div>
+                    <div class="form_input_code_div">
+                        <input type="text" name="code" class="form_input login_code" placeholder="请输入验证码" style="width: 255px"/>
+                        <button class="code" style="height: 60px;width: 96px">获取验证码</button>
+                    </div>
+                </div>
+                <button class="user_login_submit login_btn">登 录</button>
+                <div class="login-tool">
+                    <div style="margin-left: 26px">
+                        <a href="/index/login/forget">忘记密码？</a>
+                    </div>
+                    <div style="float: right;margin-right: 26px">
+                        <a href="javascript:;" id="login_type">快速登录</a>
+                    </div>
+                </div>
+            </div>
+            <div class="reg_form_box" style="display: none">
+                <div class="form_input_div">
+                    <input type="text" name="phone" class="form_input reg_phone" placeholder="请输入手机号"/>
+                </div>
+                <div class="form_input_div" style="margin-top: 20px">
+                    <input type="password" name="password" class="form_input reg_pwd" placeholder="请输入密码"/>
+                </div>
+                <div class="form_input_code_div">
+                    <input type="text" name="code" class="form_input reg_code" placeholder="请输入验证码" style="width: 255px"/>
+                    <button class="code" style="height: 60px;width: 96px">获取验证码</button>
+                </div>
+                <div class="user_word">
+                    <span><input type="checkbox" style="height: 20px;width: 20px" class="agree"/></span>
+                    <span style="margin-left: 20px">已阅读并同意
+                        <a target="_blank" rel="noopener noreferrer" href="/index/agreement?type=1">用户协议</a> 和
+                        <a target="_blank" rel="noopener noreferrer" href="/index/agreement?type=2">隐私政策</a>
+                    </span>
+                </div>
+                <button class="user_login_submit reg_btn">注 册</button>
+            </div>
+        </div>
+        <div class="footer">
+            <p>Copyright &copy; 2022. 本商城由 <a target="_blank" href="https://www.sparkshop.cn/">SparkShop(星火商城)</a> 驱动</p>
+        </div>
+    </div>
+</div>
+
+<script src="{__JS__}/jquery.min.js"></script>
+<script src="/static/js/layui/layui.js"></script>
+<script src="{__JS__}/message/message.js"></script>
+<script>
+    let nowLoginType = 1;
+    let nowFormType = 1;
+    let loginUrl = '/index/login/index';
+    let regUrl = '/index/login/reg';
+</script>
+<script src="{__JS__}/login.js"></script>
+</body>
+</html>

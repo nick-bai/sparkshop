@@ -1,0 +1,164 @@
+<template id="goods-select">
+    <el-card class="box-card" style="box-shadow:none">
+        <div class="search-box">
+            <el-form :inline="true" :model="searchForm" class="demo-form-inline" style="margin-top: 20px;">
+                <el-form-item>
+                    <el-button-group>
+                        <el-button :class="{'primary': searchForm.tab_type == 2}" size="small" @click="checkTab(2)">销售中</el-button>
+                        <el-button :class="{'primary': searchForm.tab_type == 3}" size="small" @click="checkTab(3)">仓库中</el-button>
+                        <el-button :class="{'primary': searchForm.tab_type == 4}" size="small" @click="checkTab(4)">预警中</el-button>
+                        <el-button :class="{'primary': searchForm.tab_type == 5}" size="small" @click="checkTab(5)">回收站中</el-button>
+                    </el-button-group>
+                </el-form-item>
+                <el-form-item label="商品名称">
+                    <el-input v-model="searchForm.name" placeholder="" clearable size="small"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="onSubmit" size="small" icon="el-icon-search" >查询</el-button>
+                    <el-button type="danger" size="small" @click="selectGoods">确定选择</el-button>
+                    <el-button size="small" @click="closeDialog">关闭</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+        <el-table
+                :data="tableData"
+                @row-click="singleElection"
+                highlight-current-row
+                :row-style="{ height: '57px'}"
+                style="width: 100%;font-size: 12px">
+            <el-table-column width="55" label="选择">
+                <template #default="scope">
+                    <el-radio class="radio" v-model="templateSelection" :label="scope.row.id">&nbsp;</el-radio>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="id"
+                    label="商品ID"
+                    width="75">
+            </el-table-column>
+            <el-table-column
+                    label="商品图"
+                    width="100">
+                <template slot-scope="scope">
+                    <el-avatar shape="square" :size="36" :src="scope.row.pic"></el-avatar>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="name"
+                    label="商品名称">
+            </el-table-column>
+            <el-table-column
+                    prop="cate.name"
+                    label="商品分类"
+                    width="100">
+            </el-table-column>
+            <el-table-column
+                    prop="price"
+                    label="商品售价"
+                    width="100">
+            </el-table-column>
+            <el-table-column
+                    prop="sales"
+                    label="销量"
+                    width="100">
+            </el-table-column>
+            <el-table-column
+                    prop="stock"
+                    label="库存"
+                    width="100">
+            </el-table-column>
+            <el-table-column
+                    label="状态"
+                    width="100">
+                <template slot-scope="scope">
+                    <el-tag type="success" v-if="scope.row.is_show == 1">上架</el-tag>
+                    <el-tag type="danger" v-if="scope.row.is_show == 2">下架</el-tag>
+                </template>
+            </el-table-column>
+        </el-table>
+        <div class="page-div" style="margin-top: 20px">
+            <el-pagination
+                    background
+                    layout="prev, pager, next"
+                    :page-size="searchForm.limit"
+                    @current-change="pageChangeHandle"
+                    :total="page.total">
+            </el-pagination>
+        </div>
+    </el-card>
+</template>
+
+<script>
+    Vue.component('goodsSelect', {
+        template: '#goods-select',
+        data() {
+            return {
+                baseIndex: '/{:config("shop.backend_index")}/',
+                searchForm: {
+                    cate_id: 0,
+                    tab_type: 2,
+                    name: '',
+                    page: 1,
+                    limit: 10
+                },
+                page: {
+                    total: 0
+                },
+                tableData: [],
+                selectedGoods: [],
+                templateSelection: "",
+            }
+        },
+        mounted() {
+            this.getList();
+        },
+        methods: {
+            onSubmit() {
+                this.getList()
+            },
+            // 选择状态
+            checkTab(type) {
+                this.searchForm.tab_type = type
+                this.getList()
+            },
+            // 单选
+            singleElection(row) {
+                this.templateSelection = row.id
+                this.selectedGoods = this.tableData.filter((item) => item.id === row.id)
+            },
+            handleSelectionChange(val) {
+                this.selectedGoods = [];
+                val.forEach(item => {
+                    this.selectedGoods.push(item)
+                })
+            },
+            // 翻页
+            pageChangeHandle(page) {
+                this.searchForm.page = page
+                this.getList()
+            },
+            async getList() {
+                let res = await request.get(this.baseIndex + "goods/index", this.searchForm)
+                this.tableData = res.data.data
+                this.tableData.map(item => {
+                    item.pic = JSON.parse(item.slider_image)[0]
+                    return item
+                })
+                this.page.total = res.data.total
+            },
+            selectGoods() {
+                if (this.selectedGoods.length == 0) {
+                    this.$message.error('请选择要使用的商品')
+                    return false
+                }
+                let selectedGoods = JSON.parse(JSON.stringify(this.selectedGoods))
+                this.selectedGoods = []
+                this.templateSelection = ''
+                this.$emit('selected-goods', selectedGoods)
+            },
+            closeDialog() {
+                this.$emit('close-dialog')
+            }
+        }
+    })
+</script>

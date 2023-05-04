@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>运费模板</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+</head>
+<body>
+<div id="app">
+    <div class="app-loading" v-if="pageLoading">
+        <div class="app-loading__logo">
+            <img src="{__IMG__}/logo.png"/>
+        </div>
+        <div class="app-loading__loader"></div>
+        <div class="app-loading__title">{$title}</div>
+    </div>
+    <el-card class="box-card" v-else>
+        <div slot="header" class="clearfix">
+            <span>运费模板</span>
+        </div>
+        <div class="search-box">
+            <el-form :inline="true" :model="searchForm" class="demo-form-inline">
+                <el-form-item label="模板名称">
+                    <el-input v-model="searchForm.name" placeholder="" clearable size="small"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="onSubmit" size="small" icon="el-icon-search">查询</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+        <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-bottom: 10px"></div>
+        <el-button type="primary" icon="el-icon-plus" size="small" @click="addTpl" style="margin-top: 10px">添加运费模板</el-button>
+        <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-top: 10px"></div>
+        <el-table
+                :data="tableData"
+                style="width: 100%;">
+            <el-table-column
+                    prop="id"
+                    label="模板ID">
+            </el-table-column>
+            <el-table-column
+                    prop="name"
+                    label="运费模板名">
+            </el-table-column>
+            <el-table-column
+                    label="计费方式">
+                <template slot-scope="scope">
+                    <el-tag type="success" v-if="scope.row.type == 1">按重量计费</el-tag>
+                    <el-tag type="danger" v-if="scope.row.type == 2">按件数计费</el-tag>
+                    <el-tag type="warning" v-if="scope.row.type == 3">按体积计费</el-tag>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="sort"
+                    label="排序">
+            </el-table-column>
+            <el-table-column
+                    prop="create_time"
+                    label="创建时间">
+            </el-table-column>
+            <el-table-column
+                    prop="operation"
+                    label="操作">
+                <template slot-scope="scope">
+                    <el-button @click="handleEdit(scope.row)" type="text" size="small">编辑</el-button>
+                    <el-button @click="handleDel(scope.row)" type="text" size="small">删除</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+        <el-pagination
+                style="margin-top: 10px"
+                background
+                layout="->, prev, pager, next"
+                :page-size="searchForm.limit"
+                @current-change="handlePageChange"
+                :total="total">
+        </el-pagination>
+    </el-card>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                pageLoading: true,
+                searchForm: {
+                    name: '',
+                    limit: 15,
+                    page: 1
+                },
+                title: '新增运费模板',
+                total: 1,
+                tableData: [],
+                baseIndex: '/{:config("shop.backend_index")}/',
+            }
+        },
+        mounted() {
+            this.getList()
+            this.pageLoading = false
+        },
+        methods: {
+            // 获取列表
+            async getList() {
+                let res = await request.get(this.baseIndex + 'shipping/index', this.searchForm)
+                this.tableData = res.data.data
+                this.total = res.data.total
+            },
+            // 搜索
+            onSubmit() {
+                this.getList()
+            },
+            addTpl() {
+                window.location.href = this.baseIndex + 'shipping/add'
+            },
+            // 编辑参数
+            handleEdit(item) {
+                window.location.href = this.baseIndex + 'shipping/edit?id=' + item.id
+            },
+            // 删除参数
+            handleDel(item) {
+                this.$confirm('此操作将永久删除该运费模板 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    let res = await request.get(this.baseIndex + 'shipping/del', {id: item.id})
+                    if (res.code == 0) {
+                        this.$message.success(res.msg)
+                        this.getList()
+                    } else {
+                        this.$message.error(res.msg)
+                    }
+                }).catch(() => {
+                });
+            },
+            // 分页
+            handlePageChange(page) {
+                this.searchForm.page = page
+                this.getList()
+            }
+        }
+    });
+</script>
+<style>
+    p {
+        padding: 0;
+        margin: 0;
+    }
+
+    .el-table__header tr,
+    .el-table__header th {
+        padding: 0;
+        height: 20px;
+        line-height: 20px;
+    }
+
+    .del-btn {
+        cursor: pointer;
+        color: #F56C6C
+    }
+
+    .add-btn {
+        cursor: pointer;
+        margin-top: 18px;
+        color: #409EFF
+    }
+</style>
+</body>
+</html>

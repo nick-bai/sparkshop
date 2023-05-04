@@ -1,0 +1,15 @@
+<el-form ref="balanceChangeForm" :model="balanceForm" label-width="80px">
+    <el-form-item label="当前余额">
+        {{ balanceForm.now_balance }}
+    </el-form-item>
+    <el-form-item label="操作">
+        <el-radio label="1" v-model="balanceForm.type">增加</el-radio>
+        <el-radio label="2" v-model="balanceForm.type">减少</el-radio>
+    </el-form-item>
+    <el-form-item label="余额">
+        <el-input v-model="balanceForm.balance" type="number"></el-input>
+    </el-form-item>
+</el-form>
+<span slot="footer" class="dialog-footer">
+    <el-button type="primary" @click="submitBalanceForm('balanceChangeForm')" size="small">立即提交</el-button>
+</span>

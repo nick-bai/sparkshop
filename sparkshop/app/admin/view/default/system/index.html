@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户分组</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+</head>
+<body>
+<!-- 组件导入 -->
+{include file="/components/fileSelect"}
+<div id="app">
+    <div class="app-loading" v-if="pageLoading">
+        <div class="app-loading__logo">
+            <img src="{__IMG__}/logo.png"/>
+        </div>
+        <div class="app-loading__loader"></div>
+        <div class="app-loading__title">{$title}</div>
+    </div>
+    <el-card class="box-card" v-else>
+        <div slot="header" class="clearfix">
+            <span>系统设置</span>
+        </div>
+        <el-tabs v-model="activeName">
+            <el-tab-pane label="网站设置" name="first">
+                <el-form ref="form" :model="baseForm" label-width="100px">
+                    <el-form-item label="站点开启">
+                        <el-radio :label="1" v-model="baseForm.is_open">开启</el-radio>
+                        <el-radio :label="2" v-model="baseForm.is_open">关闭</el-radio>
+                    </el-form-item>
+                    <el-form-item label="网站名称">
+                        <el-input v-model="baseForm.website_title" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="网站地址">
+                        <el-input v-model="baseForm.website_url" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="H5地址">
+                        <el-input v-model="baseForm.h5_domain" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <!--<el-form-item label="登录页logo">
+                        <ul class="img-list">
+                            <li v-if="baseForm.backend_login_logo">
+                                <img :src="baseForm.backend_login_logo" width="58px" height="58px" alt="图片">
+                                <div class="img-tools">
+                                    <i class="el-icon-delete" style="font-size: 14px;color: #fff" @click="removeImg('backend_login_logo')"></i>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="addImg" @click="showImage('backend_login_logo')">
+                                    <i class="el-icon-plus"></i>
+                                </div>
+                            </li>
+                            <li style="width: 120px;line-height: 58px;text-align: center">
+                                <span style="margin-left: 10px;font-size: 12px;color:#999">建议尺寸：200*38</span>
+                            </li>
+                        </ul>
+                    </el-form-item>
+                    <el-form-item label="后台logo">
+                        <ul class="img-list">
+                            <li v-if="baseForm.backend_logo">
+                                <img :src="baseForm.backend_logo" width="58px" height="58px" alt="图片">
+                                <div class="img-tools">
+                                    <i class="el-icon-delete" style="font-size: 14px;color: #fff" @click="removeImg('backend_logo')"></i>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="addImg" @click="showImage('backend_logo')">
+                                    <i class="el-icon-plus"></i>
+                                </div>
+                            </li>
+                            <li style="width: 120px;line-height: 58px;text-align: center">
+                                <span style="margin-left: 10px;font-size: 12px;color:#999">建议尺寸：200*38</span>
+                            </li>
+                        </ul>
+                    </el-form-item>
+                    <el-form-item label="移动端logo">
+                        <ul class="img-list">
+                            <li v-if="baseForm.mobile_logo">
+                                <img :src="baseForm.mobile_logo" width="58px" height="58px" alt="图片">
+                                <div class="img-tools">
+                                    <i class="el-icon-delete" style="font-size: 14px;color: #fff" @click="removeImg('mobile_logo')"></i>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="addImg" @click="showImage('mobile_logo')">
+                                    <i class="el-icon-plus"></i>
+                                </div>
+                            </li>
+                            <li style="width: 120px;line-height: 58px;text-align: center">
+                                <span style="margin-left: 10px;font-size: 12px;color:#999">建议尺寸：200*38</span>
+                            </li>
+                        </ul>
+                    </el-form-item>
+                    <el-form-item label="微信公众号">
+                        <ul class="img-list">
+                            <li v-if="baseForm.wechat_qrcode">
+                                <img :src="baseForm.wechat_qrcode" width="58px" height="58px" alt="图片">
+                                <div class="img-tools">
+                                    <i class="el-icon-delete" style="font-size: 14px;color: #fff" @click="removeImg('wechat_qrcode')"></i>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="addImg" @click="showImage('wechat_qrcode')">
+                                    <i class="el-icon-plus"></i>
+                                </div>
+                            </li>
+                            <li style="width: 120px;line-height: 58px;text-align: center">
+                                <span style="margin-left: 10px;font-size: 12px;color:#999">建议尺寸：200*38</span>
+                            </li>
+                        </ul>
+                    </el-form-item>-->
+                    <el-form-item label="ICP备案号">
+                        <el-input v-model="baseForm.icp_no" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="公安备案号">
+                        <el-input v-model="baseForm.police_no" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="公司地址">
+                        <el-input v-model="baseForm.address" style="width: 500px" type="textarea" rows="3"></el-input>
+                    </el-form-item>
+                    <el-form-item label="联系电话">
+                        <el-input v-model="baseForm.tel" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="邮箱">
+                        <el-input v-model="baseForm.email" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="统计代码">
+                        <el-input v-model="baseForm.census_code" style="width: 500px" type="textarea" rows="3"></el-input>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="saveBase">立即保存</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-tab-pane>
+            <el-tab-pane label="商城基础设置" name="second">
+                <el-form ref="form" :model="shopBaseForm" label-width="200px">
+                    <el-form-item label="自动收货时间">
+                        <el-input v-model="shopBaseForm.auto_receive_time" style="width: 500px" type="number"></el-input> 天
+                    </el-form-item>
+                    <el-form-item label="自动好评时间">
+                        <el-input v-model="shopBaseForm.auto_goods_appraise" style="width: 500px" type="number"></el-input> 天
+                    </el-form-item>
+                    <el-form-item label="警戒库存数">
+                        <el-input v-model="shopBaseForm.warning_store" style="width: 500px" type="number"></el-input>
+                    </el-form-item>
+                    <el-form-item label="普通商品未支付取消订单时间">
+                        <el-input v-model="shopBaseForm.com_unpaid_cancel_time" style="width: 500px" type="number"></el-input> 小时
+                    </el-form-item>
+                    <el-form-item label="砍价未支付取消订单时间">
+                        <el-input v-model="shopBaseForm.cut_unpaid_cancel_time" style="width: 500px" type="number"></el-input> 小时
+                    </el-form-item>
+                    <el-form-item label="秒杀未支付订单取消时间">
+                        <el-input v-model="shopBaseForm.seckill_unpaid_cancel_time" style="width: 500px" type="number"></el-input> 小时
+                    </el-form-item>
+                    <el-form-item label="拼团未支付取消订单时间">
+                        <el-input v-model="shopBaseForm.collage_unpaid_cancel_time" style="width: 500px" type="number"></el-input> 小时
+                    </el-form-item>
+                    <el-form-item label="余额充值未支付订单取消时间">
+                        <el-input v-model="shopBaseForm.recharge_balance_cancel_time" style="width: 500px" type="number"></el-input> 小时
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="saveShopBase">立即保存</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-tab-pane>
+            <el-tab-pane label="用户等级配置" name="third">
+                <el-form ref="form" :model="shopUserLevelForm" label-width="150px">
+                    <el-form-item label="用户等级启用">
+                        <el-radio :label="1" v-model="shopUserLevelForm.user_level_open">开启</el-radio>
+                        <el-radio :label="2" v-model="shopUserLevelForm.user_level_open">关闭</el-radio>
+                    </el-form-item>
+                    <el-form-item label="每消费1元增送经验值">
+                        <el-input v-model="shopUserLevelForm.give_points" style="width: 500px" type="number"></el-input>
+                    </el-form-item>
+                    <!--<el-form-item label="签到赠送积分">
+                        <el-input v-model="shopUserLevelForm.sign_give_points" style="width: 500px" type="number"></el-input>
+                    </el-form-item>-->
+                    <el-form-item>
+                        <el-button type="primary" @click="saveUserLevel">立即保存</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-tab-pane>
+            <el-tab-pane label="售后退款配置" name="fourth">
+                <el-form ref="form" :model="shopRefundForm" label-width="150px">
+                    <el-form-item label="售后有效期">
+                        <el-input v-model="shopRefundForm.refund_validate_day" style="width: 500px" type="number"></el-input>
+                        <span style="color: #999">天</span>
+                    </el-form-item>
+                    <el-form-item label="退货收货人姓名">
+                        <el-input v-model="shopRefundForm.receive_user" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="退货收货人地址">
+                        <el-input v-model="shopRefundForm.receive_address" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="仅退款原因">
+                        <el-input v-model="shopRefundForm.only_refund" style="width: 500px" type="textarea" rows="6"></el-input>
+                        <span style="color: #999">一行一条</span>
+                    </el-form-item>
+                    <el-form-item label="退货退款原因">
+                        <el-input v-model="shopRefundForm.goods_refund" style="width: 500px" type="textarea" rows="6"></el-input>
+                        <span style="color: #999">一行一条</span>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="saveRefund">立即保存</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-tab-pane>
+        </el-tabs>
+    </el-card>
+
+    <el-dialog title="" :visible.sync="dialogVisible" width="1200px" class="image-check-dialog">
+        <file-select :need-select="true" @selected-img="selectedImg" @close-dialog="dialogVisible=false" :select-num="1"></file-select>
+    </el-dialog>
+</div>
+
+<script>
+
+    let base = {$base|raw};
+    let shopBase = {$shop_base|raw};
+    let shopUserLevel = {$shop_user_level|raw};
+    let shopRefund = {$shop_refund|raw};
+
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                pageLoading: true,
+                baseForm: base,
+                shopBaseForm: shopBase,
+                shopUserLevelForm: shopUserLevel,
+                shopRefundForm: shopRefund,
+                activeName: 'first',
+                dialogVisible: false,
+                baseIndex: '/{:config("shop.backend_index")}/',
+                imgType: ''
+            }
+        },
+        mounted() {
+            this.baseForm.is_open = parseInt(this.baseForm.is_open)
+            this.shopUserLevelForm.user_level_open = parseInt(this.shopUserLevelForm.user_level_open)
+            this.pageLoading = false
+        },
+        methods: {
+            // 保存基础
+            async saveBase() {
+                let res = await request.post(this.baseIndex + 'system/index', this.baseForm)
+                if (res.code == 0) {
+                    this.$message.success('保存成功')
+                } else {
+                    this.$message.error(res.msg)
+                }
+            },
+            // 商品基础信息
+            async saveShopBase() {
+                let res = await request.post(this.baseIndex + 'system/index', this.shopBaseForm)
+                if (res.code == 0) {
+                    this.$message.success('保存成功')
+                } else {
+                    this.$message.error(res.msg)
+                }
+            },
+            // 用户配置
+            async saveUserLevel() {
+                let res = await request.post(this.baseIndex + 'system/index', this.shopUserLevelForm)
+                if (res.code == 0) {
+                    this.$message.success('保存成功')
+                } else {
+                    this.$message.error(res.msg)
+                }
+            },
+            // 退款配置
+            async saveRefund() {
+                let res = await request.post(this.baseIndex + 'system/index', this.shopRefundForm)
+                if (res.code == 0) {
+                    this.$message.success('保存成功')
+                } else {
+                    this.$message.error(res.msg)
+                }
+            },
+            // 删除图片
+            removeImg(type) {
+                if (type == 'backend_login_logo') {
+                    this.baseForm.backend_login_logo = ''
+                } else if (type == 'backend_logo') {
+                    this.baseForm.backend_logo = ''
+                } else if (type == 'mobile_logo') {
+                    this.baseForm.mobile_logo = ''
+                } else if (type == 'wechat_qrcode') {
+                    this.baseForm.wechat_qrcode = ''
+                }
+            },
+            // 展示资源
+            showImage(type) {
+                this.imgType = type
+                this.dialogVisible = true
+            },
+            // 选择图片
+            selectedImg(file) {
+                if (this.imgType == 'backend_login_logo') {
+                    this.baseForm.backend_login_logo = file[0].url
+                } else if (this.imgType == 'backend_logo') {
+                    this.baseForm.backend_logo = file[0].url
+                } else if (this.imgType == 'mobile_logo') {
+                    this.baseForm.mobile_logo = file[0].url
+                } else if (this.imgType == 'wechat_qrcode') {
+                    this.baseForm.wechat_qrcode = file[0].url
+                }
+
+                this.dialogVisible = false
+            }
+        }
+    });
+</script>
+<style>
+    .img-list {
+        height: 60px;
+        padding-left: 0;
+        margin-top: 0;
+    }
+    .img-list li:first-child {
+        margin-left: 0;
+    }
+    .img-list li {
+        width: 58px;
+        height: 58px;
+        float: left;
+        margin-left: 5px;
+        cursor: pointer;
+        position: relative;
+    }
+    .addImg {
+        height: 56px;
+        width: 56px;
+        line-height: 56px;
+        text-align: center;
+        border: 1px dashed rgb(221, 221, 221);
+    }
+    ul li {list-style: none}
+    .image-check-dialog .el-dialog__header {display: none}
+    .image-check-dialog .el-dialog__body {padding: 0;}
+    .img-list .img-tools {
+        position: absolute;
+        width: 58px;
+        height: 15px;
+        line-height: 15px;
+        text-align: center;
+        top: 43px;
+        background: rgba(0, 0, 0, 0.6);
+        cursor: pointer;
+    }
+</style>
+</body>
+</html>

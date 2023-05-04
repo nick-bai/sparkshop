@@ -1,0 +1,88 @@
+<el-form :model="form" label-width="120px" :rules="rules" ref="ruleForm" :disabled="mode=='show'">
+    <el-form-item label="优惠券名称" prop="name">
+        <el-input v-model="form.name" style="width: 500px"></el-input>
+    </el-form-item>
+    <el-form-item label="优惠券类型" prop="type">
+        <el-radio :label="1" v-model="form.type">满减券</el-radio>
+        <el-radio :label="2" v-model="form.type">折扣券</el-radio>
+    </el-form-item>
+    <el-form-item label="优惠券面额" prop="amount" v-if="form.type == 1">
+        <el-input v-model="form.amount" style="width: 500px" type="number"></el-input> 元
+    </el-form-item>
+    <el-form-item label="优惠折扣" prop="discount" v-if="form.type == 2">
+        <el-input v-model="form.discount" style="width: 500px" type="number" placeholder="例如：0.8 或者 0.95"></el-input>
+    </el-form-item>
+    <el-form-item label="最多优惠" prop="max_discount_amount" v-if="form.type == 2">
+        <el-input v-model="form.max_discount_amount" style="width: 500px" type="number"></el-input> 元 <span style="color:#F56C6C">(数值大于0则为设置有效)</span>
+    </el-form-item>
+    <el-form-item label="发放数量限制" prop="is_limit_num">
+        <el-radio :label="1" v-model="form.is_limit_num">限量</el-radio>
+        <el-radio :label="2" v-model="form.is_limit_num">不限量</el-radio>
+    </el-form-item>
+    <el-form-item label="发放数量" v-if="form.is_limit_num == 1">
+        <el-input v-model="form.total_num" style="width: 500px" type="number"></el-input>
+    </el-form-item>
+    <el-form-item label="最多领取数量" prop="max_receive_num">
+        <el-input v-model="form.max_receive_num" style="width: 500px" type="number"></el-input>
+    </el-form-item>
+    <el-form-item label="使用门槛" prop="is_threshold">
+        <el-radio :label="1" v-model="form.is_threshold">有门槛</el-radio>
+        <el-radio :label="2" v-model="form.is_threshold">无门槛</el-radio>
+    </el-form-item>
+    <el-form-item label="订单满" v-if="form.is_threshold == 1">
+        <el-input v-model="form.threshold_amount" style="width: 500px" type="number"></el-input> 元可以使用
+    </el-form-item>
+    <el-form-item label="有效期类型" prop="validity_type">
+        <el-radio :label="1" v-model="form.validity_type">固定时间</el-radio>
+        <el-radio :label="2" v-model="form.validity_type">领取之日起</el-radio>
+    </el-form-item>
+    <el-form-item label="有效期至" v-if="form.validity_type == 1">
+        <el-date-picker
+                style="width: 500px"
+                v-model="form.datetime_range"
+                type="datetimerange"
+                range-separator="至"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                value-format="yyyy-MM-dd HH:mm:ss">
+        </el-date-picker>
+    </el-form-item>
+    <el-form-item label="领取之日起" v-if="form.validity_type == 2">
+        <el-input v-model="form.receive_useful_day" style="width: 500px" type="number"></el-input> 天内有效
+    </el-form-item>
+    <el-form-item label="活动商品" prop="join_goods">
+        <el-radio :label="1" v-model="form.join_goods">全部商品参与</el-radio>
+        <el-radio :label="2" v-model="form.join_goods">指定商品参与</el-radio>
+    </el-form-item>
+    <el-form-item label="活动商品" v-if="form.join_goods == 2">
+        <el-button type="primary" icon="el-icon-plus" size="small" @click="selectGoods">选择商品</el-button>
+        <el-table
+                :data="selectedGoods"
+                style="width: 100%">
+            <el-table-column
+                    prop="name"
+                    :show-overflow-tooltip="true"
+                    width="550px"
+                    label="商品名">
+            </el-table-column>
+            <el-table-column
+                    prop="price"
+                    label="价格">
+            </el-table-column>
+            <el-table-column
+                    prop="stock"
+                    label="库存">
+            </el-table-column>
+            <el-table-column
+                    fixed="right"
+                    label="操作">
+                <template slot-scope="scope">
+                    <el-button @click="handleDel(scope.$index)" type="text" size="small">删除</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+    </el-form-item>
+    <el-form-item>
+        <el-button type="primary" @click="optSubmit('ruleForm')">立即创建</el-button>
+    </el-form-item>
+</el-form>

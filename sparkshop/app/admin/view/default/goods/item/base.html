@@ -1,0 +1,88 @@
+<el-form label-position="left" label-width="80px" ref="form" :model="form" :rules="rules">
+    <el-form-item label="商品类型" prop="type" class="goods-type">
+        <ul class="goods-type" style="margin-top: -20px;height: 100%">
+            <li :class="{'goods-type-active' : form.type == 1}" @click="checkType(1)">
+                <div style="margin-top: 5%">普通商品</div>
+                <div style="color:#999;font-size: 12px">(物流发货)</div>
+                <span class="icon"></span>
+            </li>
+            <li :class="{'goods-type-active' : form.type == 2}" @click="checkType(2)" style="margin-left: 10px">
+                <div style="margin-top: 5%">虚拟商品</div>
+                <div style="color:#999;font-size: 12px">(无需物流)</div>
+                <span class="icon"></span>
+            </li>
+        </ul>
+    </el-form-item>
+    <el-form-item label="商品分类" prop="cate_id">
+        <el-select v-model="form.cate_id" placeholder="请选择" style="width: 500px" clearable>
+            <el-option-group
+                    v-for="group in cate"
+                    :key="group.id"
+                    :label="group.name">
+                <el-option
+                    v-for="item in group.child"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id">
+                </el-option>
+            </el-option-group>
+        </el-select>
+    </el-form-item>
+    <el-form-item label="商品名称" prop="name">
+        <el-input v-model="form.name" style="width:500px"></el-input>
+    </el-form-item>
+    <el-form-item label="副标题">
+        <el-input type="textarea" v-model="form.sub_name" style="width:500px;"></el-input>
+    </el-form-item>
+    <el-form-item label="单位" prop="unit">
+        <el-input v-model="form.unit" style="width:500px"></el-input>
+    </el-form-item>
+    <el-form-item label="商品图" prop="slider_image" style="margin-bottom:0">
+        <ul class="img-list">
+            <li v-for="item,index in form.slider_image">
+                <img :src="item" width="58px" height="58px" alt="图片">
+                <div class="img-tools">
+                    <i class="el-icon-delete" style="font-size: 14px;color: #fff" @click="removeSlider(index)"></i>
+                </div>
+            </li>
+            <li>
+                <div class="addImg" @click="showImage">
+                    <i class="el-icon-plus"></i>
+                </div>
+            </li>
+        </ul>
+        <p style="color: #999;font-size: 12px">建议尺寸：800*800，可拖拽改变图片顺序，默认首张图为主图，最多上传8张</p>
+    </el-form-item>
+    <el-form-item label="商品视频" style="margin-bottom: 0px;">
+        <ul class="img-list">
+            <li>
+                <el-upload
+                        class="upload-demo"
+                        action="{:url('attachment/uploadFile')}"
+                        :on-success="videoHandle"
+                        :before-upload="beforeVideoUpload"
+                        :limit="1">
+                    <div class="addImg" style="width: 100px;height: 50px;line-height: 50px">
+                        <i class="el-icon-plus"></i>
+                    </div>
+                </el-upload>
+            </li>
+            <li style="width: 300px;height: 150px;margin-left: 100px;" v-if="form.video_src">
+                <video width="300" height="150" controls="">
+                    <source :src="form.video_src" type="video/mp4">
+                    您的浏览器不支持 video 标签。
+                </video>
+            </li>
+        </ul>
+        <p style="color: #999;font-size: 12px" :style="{'margin-top' : (form.video_src != '') ? '100px' : '30px'}">
+            PHP默认上传限制为2MB，需要在php.ini配置文件中修改“post_max_size”和“upload_max_filesize”的大小。 必须上传.mp4视频格式</p>
+    </el-form-item>
+    <el-form-item label="是否上架" prop="is_show">
+        <el-radio v-model="form.is_show" label="1">上架</el-radio>
+        <el-radio v-model="form.is_show" label="2">下架</el-radio>
+    </el-form-item>
+    <el-form-item>
+        <el-button type="primary" @click="next" size="small">下一步</el-button>
+        <el-button type="primary" @click="saveGoods" size="small" v-if="form.id > 0">保存</el-button>
+    </el-form-item>
+</el-form>

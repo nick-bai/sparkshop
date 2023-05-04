@@ -1,0 +1,46 @@
+.page-div {
+    float: right;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+#message_box_outside {
+    position: fixed;
+    top: 40px;
+    left: 50%;
+    transform: translate(-50%, -50%); /* 50%为自身尺寸的一半 */
+    z-index: 2000;
+}
+
+.message_box_inside {
+    margin-top: 10px;
+    color: white;
+    min-height: 40px;
+    min-width: 200px;
+    border-radius: 3px;
+    padding: 10px 10px;
+}
+
+.cc-display {
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    display: -webkit-flex;
+}
+
+.app-loading {position: absolute;top:0px;left:0px;right:0px;bottom:0px;display: flex;justify-content: center;align-items: center;flex-direction: column;background: #fff;}
+.app-loading__logo {margin-bottom: 30px;}
+.app-loading__logo img {width: 90px;vertical-align: bottom;}
+.app-loading__loader {box-sizing: border-box;width: 35px;height: 35px;border: 5px solid transparent;border-top-color: #000;border-radius: 50%;animation: .5s loader linear infinite;position: relative;}
+.app-loading__loader:before {box-sizing: border-box;content: '';display: block;width: inherit;height: inherit;position: absolute;top: -5px;left: -5px;border: 5px solid #ccc;border-radius: 50%;opacity: .5;}
+.app-loading__title {font-size: 24px;color: #333;margin-top: 30px;}
+.dark .app-loading {background: #222225;}
+.dark .app-loading__loader {border-top-color: #fff;}
+.dark .app-loading__title {color: #d0d0d0;}
+@keyframes loader {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}

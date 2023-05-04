@@ -1,0 +1,101 @@
+<el-form :model="form" label-width="110px" :rules="rules" ref="ruleForm">
+    <el-form-item>
+        <span slot="label">
+            <span style="color:#f56c6c;margin-right: 4px;">*</span>选择商品
+        </span>
+        <el-button type="primary" size="small" icon="el-icon-shopping-cart-2" @click="selectGoods">选择商品</el-button>
+    </el-form-item>
+    <el-form-item>
+        <span slot="label">
+            <span style="color:#f56c6c;margin-right: 4px;">*</span>选择规格
+        </span>
+        <el-table
+                ref="multipleTable"
+                :data="seckillGoods"
+                @selection-change="handleSelectionChange"
+                style="width: 100%">
+            <el-table-column
+                    type="selection"
+                    width="55">
+            </el-table-column>
+            <el-table-column v-for="item,index in tableHead" :label="item.label" :key="index">
+                <template slot-scope="scope">
+                    {{ scope.row.sku[item.property] }}
+                </template>
+            </el-table-column>
+            <el-table-column
+                    label="图片">
+                <template slot-scope="scope">
+                    <img :src="scope.row.pic" width="40px" height="40px"/>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    label="售价">
+                <template slot-scope="scope">
+                    {{ scope.row.goods_price }}
+                </template>
+            </el-table-column>
+            <el-table-column
+                    label="秒杀价"
+                    width="160px">
+                <template slot-scope="scope">
+                    <el-input type="number" v-model="scope.row.seckill_price"></el-input>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    label="库存">
+                <template slot-scope="scope">
+                    {{ scope.row.goods_stock }}
+                </template>
+            </el-table-column>
+            <el-table-column
+                    label="秒杀库存">
+                <template slot-scope="scope">
+                    <el-input type="number" v-model="scope.row.stock"></el-input>
+                </template>
+            </el-table-column>
+        </el-table>
+    </el-form-item>
+    <el-form-item label="商品标题" prop="name">
+        <el-input v-model="form.name" placeholder="商品标题" style="width: 500px" clearable></el-input>
+    </el-form-item>
+    <el-form-item label="活动简介" prop="desc">
+        <el-input v-model="form.desc" type="textarea" :rows="3" style="width: 500px" clearable></el-input>
+    </el-form-item>
+    <el-form-item label="活动时间" prop="activity_time">
+        <el-date-picker
+                style="width: 500px"
+                v-model="form.activity_time"
+                type="datetimerange"
+                value-format="yyyy-MM-dd HH:mm:ss"
+                :picker-options="pickerOptions"
+                range-separator="至"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                align="right">
+        </el-date-picker>
+    </el-form-item>
+    <el-form-item label="秒杀时段" prop="seckill_time_id">
+        <el-select v-model="form.seckill_time_id" placeholder="请选择" style="width: 500px" clearable>
+            <el-option
+                    v-for="item in seckill_time"
+                    :key="item.id"
+                    :label="`${item.start_hour}点开始,持续${item.continue_hour}小时`"
+                    :value="item.id">
+            </el-option>
+        </el-select>
+    </el-form-item>
+    <el-form-item label="单次购买限制" prop="once_buy_num">
+        <el-input v-model="form.once_buy_num" type="number" style="width: 500px" clearable></el-input>
+    </el-form-item>
+    <el-form-item label="购买总是限制" prop="total_buy_num">
+        <el-input v-model="form.total_buy_num" type="number" style="width: 500px" clearable></el-input>
+    </el-form-item>
+    <el-form-item label="活动状态">
+        <el-radio :label="1" v-model="form.is_open">开启</el-radio>
+        <el-radio :label="2" v-model="form.is_open">关闭</el-radio>
+    </el-form-item>
+    <el-form-item>
+        <el-button type="primary" @click="optSubmit('ruleForm')">立即提交</el-button>
+    </el-form-item>
+</el-form>

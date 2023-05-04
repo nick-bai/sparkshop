@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>可用的优惠券</title>
+    <link rel="stylesheet" href="{__CSS__}/coupon.css">
+    <script src="{__JS__}/jquery.min.js"></script>
+</head>
+<body>
+<div class="coupon-list">
+    {foreach name="validity_coupon" item="vo"}
+    <div class="coupon-item">
+        <div class="coupon">
+            <div class="coupon-inner">
+                <div class="title {if $vo['valid'] == 2}overdue{/if}">
+                    {$vo['type_txt']}
+                </div>
+                <div class="content">
+                    <span class="name {if $vo['valid'] == 2}overdue-txt{/if}"><span class="coupon-type {if $vo['valid'] == 2}overdue{/if}">{$vo['join_goods_txt']}</span> {$vo['name']}</span><br/>
+                    <span class="date">有效期至：{$vo['validate_txt']}</span>
+                </div>
+            </div>
+        </div>
+        {if $vo['valid'] == 1}
+        <div class="coupon-select">
+            <input name="coupon_id" type="radio" value="{$vo['my_coupon_id']}" data-name="{$vo['name']}" data-type="{$vo['type_txt']}">
+        </div>
+        {/if}
+        {if $vo['valid'] == 2}
+        <p class="notice">* {$vo['notice']}</p>
+        {/if}
+    </div>
+    {/foreach}
+</div>
+<script>
+    $(function () {
+
+        $('input[type=radio][name=coupon_id]').change(function() {
+            parent.couponSelected({
+                code: $(this).val(),
+                name: $(this).attr('data-name'),
+                type: $(this).attr('data-type')
+            });
+
+            var index = parent.layer.getFrameIndex(window.name);
+            parent.layer.close(index);
+        })
+    })
+</script>
+</body>
+</html>

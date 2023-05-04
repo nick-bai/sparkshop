@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>商品分类</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+</head>
+<body>
+<div id="app">
+    <div class="app-loading" v-if="pageLoading">
+        <div class="app-loading__logo">
+            <img src="{__IMG__}/logo.png"/>
+        </div>
+        <div class="app-loading__loader"></div>
+        <div class="app-loading__title">{$title}</div>
+    </div>
+    <el-card class="box-card" v-else>
+        <div slot="header" class="clearfix">
+            <span>商品分类</span>
+        </div>
+        <el-button type="primary" icon="el-icon-plus" size="small" @click="addTopCate">添加顶级分类</el-button>
+        <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-top: 10px"></div>
+        <el-table
+                :data="tableData"
+                style="width: 100%;"
+                row-key="id"
+                :tree-props="{children: 'child'}">
+            <el-table-column
+                    type=""
+                    prop="id"
+                    label="ID">
+            </el-table-column>
+            <el-table-column
+                    prop="name"
+                    label="分类名">
+            </el-table-column>
+            <el-table-column
+                    label="图标">
+                <template slot-scope="scope">
+                    <el-image style="width: 30px; height: 30px" :src="scope.row.icon"></el-image>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="sort"
+                    label="排序">
+            </el-table-column>
+            <el-table-column
+                    prop="status"
+                    label="是否显示">
+                <template slot-scope="scope">
+                    <el-tag type="success" v-if="scope.row.status == 1">显示</el-tag>
+                    <el-tag type="danger" v-else>隐藏</el-tag>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="create_time"
+                    label="添加时间">
+            </el-table-column>
+            <el-table-column
+                    prop="operation"
+                    label="操作">
+                <template slot-scope="scope">
+                    <el-button @click="handleAddSub(scope.row)" type="text" size="small" v-if="scope.row.level != 2">子分类</el-button>
+                    <el-button @click="handleEdit(scope.row)" type="text" size="small">编辑</el-button>
+                    <el-button @click="handleDel(scope.row)" type="text" size="small">删除</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+    </el-card>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                pageLoading: true,
+                tableData: [],
+                baseIndex: '/{:config("shop.backend_index")}/',
+                dialogCateVisible: false,
+                title: '添加顶级分类',
+                form: {}
+            }
+        },
+        mounted() {
+            this.getList()
+            this.pageLoading = false
+        },
+        methods: {
+            // 添加顶级分类
+            addTopCate() {
+                window.location.href = this.baseIndex + 'goodsCate/add?pid=0&pname=顶级节点'
+            },
+            // 获取列表
+            async getList() {
+                let res = await request.get(this.baseIndex + 'goodsCate/index')
+                this.tableData = res.data
+            },
+            // 添加子分类
+            handleAddSub(item) {
+                window.location.href = this.baseIndex + 'goodsCate/add?pid=' + item.id + '&pname=' + item.name
+            },
+            // 编辑子分类
+            handleEdit(item) {
+                window.location.href = this.baseIndex + 'goodsCate/edit?pid=' + item.pid + '&id=' + item.id
+            },
+            handleDel(item) {
+                this.$confirm('此操作将永久删除该分类, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    let res = await request.get(this.baseIndex + 'goodsCate/del', {id: item.id})
+                    if (res.code == 0) {
+                        this.$message.success(res.msg)
+                        this.getList()
+                    } else {
+                        this.$message.error(res.msg)
+                    }
+                }).catch(() => {});
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

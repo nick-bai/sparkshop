@@ -1,0 +1,23 @@
+{
+    "name": "nick-bai/ueditor-thinkphp",
+    "description": "Ueditor upload file SDK for ThinkPHP",
+    "keywords": [ "ueditor", "upload", "ThinkPHP" ],
+    "type": "library",
+    "license": "MIT",
+    "homepage": "http://ueditor.baidu.com/website/",
+    "authors": [
+        {
+            "name": "nickbai",
+            "homepage": "https://github.com/nick-bai"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.0"
+    },
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {
+            "Ueditor\\": "src/"
+        }
+    }
+}

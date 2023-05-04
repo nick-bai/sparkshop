@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>管理员登录</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+    <script>if(window.top !== window.self){ window.top.location = window.location;}</script>
+</head>
+<body>
+<div id="app">
+    <el-card class="box-card">
+        <el-container>
+            <el-aside width="600px" style="background-image: url('{__IMG__}/auth_banner.jpg');">
+                <div class="login_adv__title">
+                    <h2>SparkShop</h2>
+                    <h4>美观 / 精简 / 易开发</h4>
+                </div>
+                <div style="height: 51px;color: #fff;position: absolute;bottom: 0;left: 40px;">
+                    Powered By
+                    <a href="https://gitee.com/nickbai/sparkshop" target="_blank" style="text-decoration: none;color:#409EFF">
+                        {$title} {$version}
+                    </a>
+                </div>
+            </el-aside>
+            <el-main>
+                <div class="login-form">
+                    <h2>管理员登录</h2>
+                    <el-form ref="loginForm" :model="form" abel-width="0" size="large">
+                        <el-form-item prop="user">
+                            <el-input v-model="form.name" prefix-icon="el-icon-user" clearable placeholder="用户名"></el-input>
+                        </el-form-item>
+                        <el-form-item prop="password">
+                            <el-input v-model="form.password" prefix-icon="el-icon-lock" clearable show-password placeholder="请输入密码"></el-input>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-col :span="15">
+                                <el-input v-model="form.code" clearable placeholder="验证码"></el-input>
+                            </el-col>
+                            <el-col :span="9">
+                                <img :src="captchaSrc" width="130px" height="40px" style="margin-left: 20px;cursor: pointer" @click="refresh">
+                            </el-col>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-button type="primary" style="width: 100%;" :loading="islogin" @click="submit">登录</el-button>
+                        </el-form-item>
+                    </el-form>
+                </div>
+            </el-main>
+        </el-container>
+    </el-card>
+</div>
+<script>
+    new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                baseIndex: '/{:config("shop.backend_index")}/',
+                form: {
+                    name: '',
+                    password: '',
+                    code: ''
+                },
+                captchaSrc: "{:url('login/captcha')}",
+                baseUrl:  "{:url('login/captcha')}",
+                islogin: false
+            }
+        },
+        mounted() {
+            document.onkeydown = (event) => {
+                var e = event || window.event;
+                if (e && e.keyCode == 13) {
+                    this.submit();
+                }
+            }
+        },
+        methods: {
+            async submit() {
+                if (this.form.name == '') {
+                    this.$message.error('请输入用户名');
+                    return false;
+                }
+
+                if (this.form.password == '') {
+                    this.$message.error('请输入密码');
+                    return false;
+                }
+
+                if (this.form.code == '') {
+                    this.$message.error('请输入验证码');
+                    return false;
+                }
+
+                this.islogin = true
+                let res = await request.post(this.baseIndex + "login/doLogin", this.form)
+                this.islogin = false
+                if (res.code == 0) {
+                    this.$message.success('登录成功')
+                    setTimeout(function () {
+                        window.location.href = '/{:config("shop.backend_index")}';
+                    }, 800)
+                } else {
+                    this.refresh()
+                    this.$message.error(res.msg)
+                }
+            },
+            refresh() {
+                this.captchaSrc = this.baseUrl + '&t=' + Math.random()
+            }
+        }
+    })
+</script>
+<style>
+    html,body,#app {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+    }
+    .el-card__body {height: 100%}
+    .el-container {height: 100%}
+    .el-card__body, .el-main {padding: 0!important;}
+    .box-card {height: 100%;width: 100%;border:none !important;border-radius: 0 !important}
+    .login_adv__title {
+        color: #fff;
+        padding: 40px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 2;
+        width: 500px;
+    }
+    .login_adv__title h2 {
+        font-size: 40px;
+    }
+    .login_adv__title h4 {
+        font-size: 18px;
+        margin-top: 10px;
+        font-weight: 400;
+    }
+    .login-form {margin: 0 auto;height: 400px;width: 400px;margin-top: 300px}
+</style>
+</body>
+</html>

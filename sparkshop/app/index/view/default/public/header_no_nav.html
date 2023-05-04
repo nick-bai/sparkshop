@@ -1,0 +1,109 @@
+<header class="header-area">
+    <div class="top-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <ul class="header-left-content">
+                        <li>
+                            <a href="javascript:;" style="font-size: 13px" onclick="addFavorite()">
+                                收藏本站
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-lg-4">
+                    <div class="header-right-content">
+                        <ul>
+                            <li>
+                                {if empty($userInfo['id'])}
+                                <a href="/index/login/index" target="_blank">登录/注册</a>
+                                {else /}
+                                <span style="color:#555555;font-size: 13px">您好, {$userInfo['name']} </span>&nbsp;&nbsp;&nbsp;
+                                <a href="/index/user" class="user_center">个人中心</a> &nbsp;&nbsp;&nbsp;
+                                <a href="/index/login/loginOut" class="user_out">退出</a>
+                                {/if}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 搜索 -->
+    <div class="middle-header middle-header-style-two">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-3">
+                    <div class="logo">
+                        <a href="/">
+                            <img src="{__IMG__}/logo.png" alt="Image" style="max-width: 60%">
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <form class="search-box">
+                        <input type="text" name="Search" placeholder="输入内容" class="form-control">
+                        <button type="submit" class="search-btn">
+                            <i class="ri-search-line"></i>
+                            搜 索
+                        </button>
+                    </form>
+                </div>
+                <div class="col-lg-4">
+                    <ul class="wish-cart">
+                        <!--<li>
+                            <a href="wishlist.html">
+                                <span class="wish-icon">
+                                <i class="iconfont icon-shoucang" style="font-size: 20px"></i>
+                                <span class="count">0</span>
+                                </span>
+                                <span class="favorite">Favorite</span>
+                                我的收藏
+                            </a>
+                        </li>-->
+                        <li>
+                            <span class="cart" onclick="window.location.href='/cart/detail'">
+                              <span class="wish-icon">
+                                  <i class="iconfont icon-gouwuche"></i>
+                                  <span class="count" id="cartCount">{$cartNum}</span>
+                                </span>
+                                <span class="favorite">购物车:</span>
+                                <span id="totalAmount">￥{$cartAmount}</span>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 搜索 -->
+    <!-- 分类 -->
+    <div class="navbar-area navbar-area-style-two">
+        <div class="desktop-nav">
+            <div class="container">
+                <nav class="navbar navbar-expand-md navbar-light">
+                    <div class="collapse navbar-collapse mean-menu" id="navbarSupportedContent">
+                        <ul class="navbar-nav" style="margin-left: 344px">
+                            <li class="nav-item float-end">
+                                <a href="/" class="nav-link active">
+                                    首页
+                                </a>
+                            </li>
+                            <li class="nav-item mega-menu">
+                                <a href="/index/cate" class="nav-link">
+                                    产品分类
+                                </a>
+                            </li>
+                            <li class="nav-item mega-menu">
+                                <a href="/index/seckill" class="nav-link">
+                                    限时秒杀
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <!-- 分类 -->
+</header>

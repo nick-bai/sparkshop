@@ -1,0 +1,13 @@
+<el-form ref="form" :model="updateForm" label-width="120px">
+    <el-form-item label="需要更新的文件">
+        <el-input type="textarea" v-model="updateForm.files" :rows="10"></el-input>
+        <span style="font-size: 12px;color: red">* 一行一个文件</span>
+    </el-form-item>
+    <el-form-item label="版本号">
+        <el-input v-model="updateForm.version"></el-input>
+    </el-form-item>
+    <el-form-item>
+        <el-button type="primary" @click="doUpdateSubmit">立即创建</el-button>
+        <el-button>取消</el-button>
+    </el-form-item>
+</el-form>

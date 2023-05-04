@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-CN" xml:lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>我的优惠券</title>
+    <link rel="stylesheet" href="{__CSS__}/bootstrap.min.css">
+    <link rel="stylesheet" href="{__CSS__}/style.css">
+    <link rel="stylesheet" href="{__CSS__}/iconfont.css">
+    <link rel="stylesheet" href="{__CSS__}/user.css">
+    <link rel="stylesheet" href="/static/js/layui/css/layui.css">
+    <link rel="stylesheet" href="{__CSS__}/coupon.css">
+    <script src="{__JS__}/jquery.min.js"></script>
+    <script src="/static/js/layui/layui.js"></script>
+    <script src="{__JS__}/bootstrap.bundle.min.js"></script>
+    <script src="{__JS__}/meanmenu.min.js"></script>
+    <style>
+        .layui-tab-brief > .layui-tab-title .layui-this {
+            color: #e93323 !important
+        }
+
+        .layui-tab-brief > .layui-tab-more li.layui-this:after, .layui-tab-brief > .layui-tab-title .layui-this:after {
+            border-bottom: 2px solid #e93323;
+        }
+    </style>
+</head>
+<body style="background: #f9f9f9;">
+{include file="public/header_no_nav"}
+<div class="user_container">
+    <div style="color: #757575">
+        <a href="/">首页</a> > 用户中心
+    </div>
+    <div class="user_content">
+        {include file="public/user_menu"}
+        <div class="content_detail" style="padding: 20px 20px;">
+            <div class="layui-tab layui-tab-brief" lay-filter="coupon">
+                <ul class="layui-tab-title">
+                    <li class="layui-this">可以使用的</li>
+                    <li>已经使用的</li>
+                    <li>已经过期的</li>
+                </ul>
+                <div class="layui-tab-content">
+                    <div class="layui-tab-item layui-show">
+                        <div class="coupon-list"  id="coupon-1">
+
+                        </div>
+                        <div id="pages-1"></div>
+                    </div>
+                    <div class="layui-tab-item">
+                        <div class="coupon-list" id="coupon-2">
+
+                        </div>
+                        <div id="pages-2"></div>
+                    </div>
+                    <div class="layui-tab-item">
+                        <div class="coupon-list" id="coupon-3">
+
+                        </div>
+                        <div id="pages-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script id="couponTpl" type="text/html">
+    {{#  layui.each(d.data, function(index, item){ }}
+    <div class="coupon-item-list">
+        <div class="coupon">
+            <div class="coupon-inner">
+                <div class="title {{# if(item.status > 1) { }}overdue{{# } }}">
+                    {{ item.type_txt }}
+                </div>
+                <div class="content">
+                    <span class="name {{# if(item.status > 1) { }}overdue-txt{{# } }}"><span
+                        class="coupon-type {{# if(item.status > 1) { }}overdue{{# } }}">{{ item.join_goods_txt }}</span> {{ item.coupon.name }}</span><br/>
+                    <span class="date">有效期至：{{ item.valid_date }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{#  }); }}
+</script>
+{include file="public/footer"}
+
+<div class="go-top">
+    <i class="iconfont icon-yooxi"></i>
+    <i class="iconfont icon-yooxi"></i>
+</div>
+<script src="{__JS__}/custom.js"></script>
+<script>
+    let param = {
+        limit: 10,
+        page: 1,
+        status: 1
+    };
+    layui.use(['element'], function () {
+
+        var element = layui.element;
+
+        element.on('tab(coupon)', function (data) {
+            param.status = parseInt(data.index) + 1;
+            param.page = 1;
+            getMyCoupon();
+        })
+    })
+
+    getMyCoupon();
+
+    function getMyCoupon() {
+
+        layui.use(['laytpl', 'laypage'], function () {
+            var laytpl = layui.laytpl;
+            var laypage = layui.laypage;
+
+            $.getJSON('/index/user/coupon', param, function (res) {
+                if (res.code == 0) {
+                    var getTpl = couponTpl.innerHTML
+                        ,view = document.getElementById('coupon-' + param.status);
+                    laytpl(getTpl).render(res.data, function(html){
+                        view.innerHTML = html;
+                    });
+
+                    laypage.render({
+                        elem: 'pages-' + param.status
+                        , limit: param.limit
+                        , curr: res.data.current_page
+                        , count: res.data.total
+                        , jump: function (obj, first) {
+                            if (!first) {
+                                param.page = obj.curr
+                                getMyCoupon()
+                            }
+                        }
+                    });
+                }
+            })
+        })
+    }
+</script>
+</body>
+</html>

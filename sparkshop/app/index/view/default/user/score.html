@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="zh-CN" xml:lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>我的积分</title>
+    <link rel="stylesheet" href="{__CSS__}/bootstrap.min.css">
+    <link rel="stylesheet" href="{__CSS__}/style.css">
+    <link rel="stylesheet" href="{__CSS__}/iconfont.css">
+    <link rel="stylesheet" href="{__CSS__}/user.css">
+    <link rel="stylesheet" href="/static/js/layui/css/layui.css">
+    <script src="{__JS__}/jquery.min.js"></script>
+    <script src="/static/js/layui/layui.js"></script>
+    <script src="{__JS__}/bootstrap.bundle.min.js"></script>
+    <script src="{__JS__}/meanmenu.min.js"></script>
+    <style>
+        .user-info {
+            height: 150px;
+            width: 100%;
+        }
+        .user-info .card {
+            float: left;
+            width: 20%;
+            height: 150px;
+            margin-left: 35px;
+            text-align: center;
+            line-height: 15px;
+        }
+        .user-info .card h3 {
+            font-size: 20px;
+            margin-top: 40px;
+            color: #757575;
+        }
+        .detail {
+            font-size: 20px;
+            color: #e93323;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body style="background: #f9f9f9;">
+{include file="public/header_no_nav"}
+<div class="user_container">
+    <div style="color: #757575">
+        <a href="/">首页</a> > 用户中心
+    </div>
+    <div class="user_content">
+        {include file="public/user_menu"}
+        <div class="content_detail" style="padding: 20px 20px;">
+            <div class="user-info">
+                <div class="card">
+                    <h3>我的积分</h3>
+                    <div id="my-score" class="detail"></div>
+                </div>
+                <div class="card">
+                    <h3>可用积分</h3>
+                    <div id="useful-score" class="detail"></div>
+                </div>
+                <div class="card">
+                    <h3>我的等级</h3>
+                    <div id="my-level" class="detail"></div>
+                </div>
+                <div class="card">
+                    <h3>享受折扣</h3>
+                    <div id="my-discount" class="detail"></div>
+                </div>
+            </div>
+            <table class="layui-table" style="margin-top: 30px">
+                <thead>
+                <tr>
+                    <th>积分变动</th>
+                    <th>来源</th>
+                    <th>时间</th>
+                </tr>
+                </thead>
+                <tbody id="table-view">
+
+                </tbody>
+            </table>
+            <div id="pages"></div>
+        </div>
+    </div>
+</div>
+{include file="public/footer"}
+
+<script id="score" type="text/html">
+    {{#  layui.each(d.data, function(index, item){ }}
+    <tr>
+        <td>{{ item.score }}</td>
+        <td>{{ item.remark }}</td>
+        <td>{{ item.create_time }}</td>
+    </tr>
+    {{#  }); }}
+</script>
+
+<div class="go-top">
+    <i class="iconfont icon-yooxi"></i>
+    <i class="iconfont icon-yooxi"></i>
+</div>
+<script src="{__JS__}/custom.js"></script>
+<script>
+    let param = {
+        limit: 10,
+        page: 1
+    };
+
+    getMyScore();
+
+    function getMyScore() {
+
+        layui.use(['laytpl', 'laypage'], function () {
+            var laytpl = layui.laytpl;
+            var laypage = layui.laypage;
+
+            $.getJSON('/index/user/score', param, function (res) {
+                if (res.code == 0) {
+                    var getTpl = score.innerHTML
+                        ,view = document.getElementById("table-view");
+                    laytpl(getTpl).render(res.data.list, function(html){
+                        view.innerHTML = html;
+                    });
+
+                    $('#my-score').text(res.data.userInfo.score);
+                    $('#useful-score').text(res.data.userInfo.useful_score);
+                    $('#my-level').text('V' + res.data.userInfo.vip_level);
+                    $('#my-discount').text(res.data.userInfo.discount);
+
+                    laypage.render({
+                        elem: 'pages'
+                        , limit: param.limit
+                        , curr: res.data.list.current_page
+                        , count: res.data.list.total
+                        , jump: function (obj, first) {
+                            if (!first) {
+                                param.page = obj.curr
+                                getMyScore()
+                            }
+                        }
+                    });
+                }
+            })
+        })
+    }
+</script>
+</body>
+</html>

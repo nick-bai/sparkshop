@@ -1,0 +1,44 @@
+<el-button type="primary" icon="el-icon-refresh" size="small" @click="logRefresh"></el-button>
+<el-table
+        class="tableClass"
+        :data="logTableData"
+        v-loading="logLoading"
+        style="width: 100%;margin-top: 20px">
+    <el-table-column
+            prop="id"
+            label="ID">
+    </el-table-column>
+    <el-table-column
+            prop="return_var"
+            label="运行结果">
+        <template slot-scope="scope">
+            <el-tag type="success" v-if="scope.row.return_var == 0">成功</el-tag>
+            <el-tag type="danger" v-if="scope.row.return_var == 1">失败</el-tag>
+        </template>
+    </el-table-column>
+    <el-table-column
+            prop="command"
+            :show-overflow-tooltip="true"
+            label="任务命令">
+    </el-table-column>
+    <el-table-column
+            prop="running_time"
+            label="运行耗时">
+    </el-table-column>
+    <el-table-column
+            prop="output"
+            :show-overflow-tooltip="true"
+            label="输出结果">
+    </el-table-column>
+    <el-table-column
+            prop="create_time"
+            label="执行时间">
+    </el-table-column>
+</el-table>
+<el-pagination
+        background
+        layout="->, prev, pager, next"
+        @current-change="handleLogCurrentChange"
+        :page-size="logPage.limit"
+        :total="logTotal" style="margin-top: 10px">
+</el-pagination>

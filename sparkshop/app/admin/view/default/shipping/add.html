@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>添加运费模板</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+</head>
+<body>
+<div id="app">
+    <el-card class="box-card">
+        <div slot="header" class="clearfix">
+            <span @click="goBack()" style="cursor: pointer;color: #66b1ff">&lt; 返回</span>
+            <el-divider direction="vertical"></el-divider>
+            <span>添加运费模板</span>
+        </div>
+        <el-form :model="form" :rules="rules" ref="ruleForm" label-width="100px">
+            <el-form-item label="运费模板名" prop="name">
+                <el-input v-model="form.name" style="width: 500px"></el-input>
+            </el-form-item>
+            <el-form-item label="排序值" prop="sort">
+                <el-input v-model="form.sort" style="width: 500px" type="number"></el-input>
+            </el-form-item>
+            <el-form-item label="计费方式" prop="type">
+                <el-radio :label="1" v-model="form.type">按重量计费</el-radio>
+                <el-radio :label="2" v-model="form.type">按件数计费</el-radio>
+                <el-radio :label="3" v-model="form.type">按体积计费</el-radio>
+            </el-form-item>
+            <el-form-item label="配送区域" prop="area_id">
+                <el-button type="primary" icon="el-icon-plus" size="small" style="float: right;margin-bottom: 10px" @click="addTpl">新的区域</el-button>
+                <el-table
+                        border
+                        :data="tableData"
+                        style="width: 100%;">
+                    <el-table-column
+                            label="可配送区域"
+                            width="500">
+                        <template slot-scope="scope">
+                            <span style="color: #409EFF;cursor: pointer" v-if="scope.$index == 0">{{ scope.row.area_name }}</span>
+                            <span style="color: #409EFF;cursor: pointer" @click="setArea(scope.$index)" v-else>{{ scope.row.area_name }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            :label="showTableHeader.first_title"
+                            width="180">
+                        <template slot-scope="scope">
+                            <el-input v-model="scope.row.first" type="number"></el-input>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            label="运费（元）">
+                        <template slot-scope="scope">
+                            <el-input v-model="scope.row.first_price" type="number"></el-input>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            :label="showTableHeader.continue_title">
+                        <template slot-scope="scope">
+                            <el-input v-model="scope.row.continue" type="number"></el-input>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            label="续费（元）">
+                        <template slot-scope="scope">
+                            <el-input v-model="scope.row.continue_price" type="number"></el-input>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            width="100px"
+                            label="操作">
+                        <template slot-scope="scope">
+                            <el-button type="danger" icon="el-icon-delete" circle @click="delTpl(scope.$index)" v-if="scope.$index > 0" size="small"></el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="onSubmit('ruleForm')">立即保存</el-button>
+            </el-form-item>
+        </el-form>
+    </el-card>
+
+    <el-dialog
+            title="选择区域"
+            :visible.sync="dialogVisible"
+            width="500px">
+        <div class="el-dialog-div">
+            <el-tree
+                ref="tree"
+                :data="area"
+                :props="defaultProps"
+                show-checkbox>
+            </el-tree>
+        </div>
+        <span slot="footer" class="dialog-footer">
+            <el-tag type="danger" style="font-size: 12px;margin-right: 40px">* 上下滑动查看全部的省份</el-tag>
+            <el-button type="primary" @click="selectCity">确 定</el-button>
+        </span>
+    </el-dialog>
+</div>
+<script>
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                baseIndex: '/{:config("shop.backend_index")}/',
+                form: {
+                    id: 0,
+                    name: '',
+                    sort: 0,
+                    type: 1,
+                    area_id: [],
+                    first: [],
+                    first_price: [],
+                    continue: [],
+                    continue_price: []
+                },
+                dialogVisible: false,
+                tableData: [
+                    {
+                        area_name: '全国通用',
+                        area_id: '1-0-0',
+                        first: '3.00',
+                        first_price: '6.00',
+                        continue: '1.00',
+                        continue_price: '2.00'
+                    }
+                ],
+                rules: {
+                    name: [
+                        {required: true, message: '请输入运费模板名', trigger: 'blur'},
+                    ],
+                    sort: [
+                        {required: true, message: '请输入排序值', trigger: 'blur'},
+                    ],
+                    type: [
+                        {required: true, message: '请输入计费方式', trigger: 'blur'},
+                    ],
+                    area_id: [
+                        {required: true, message: '请输入配送区域', trigger: 'blur'},
+                    ]
+                },
+                defaultProps: {
+                    label: 'name',
+                    children: 'child'
+                },
+                area: [],
+                nowIndex: 0,
+                showTableHeader: {
+                    first_title: '首重（Kg）',
+                    continue_title: '续件（个）',
+                },
+                tableHeader: [
+                    {
+                        first_title: '首重（Kg）',
+                        continue_title: '续件（个）',
+                    },
+                    {
+                        first_title: '首件（个）',
+                        continue_title: '续件数量（个）',
+                    },
+                    {
+                        first_title: '首体积(m³)',
+                        continue_title: '续体积(m³)',
+                    },
+                ]
+            }
+        },
+        watch: {
+            'form.type': {
+                handler(val) {
+                    this.showTableHeader = this.tableHeader[Number(val) - 1]
+                }
+            }
+        },
+        methods: {
+            goBack() {
+                window.location.href = this.baseIndex + 'shipping/index'
+            },
+            onSubmit(formName) {
+                this.form.area_id = []
+                this.form.first = []
+                this.form.first_price = []
+                this.form.continue = []
+                this.form.continue_price = []
+
+                this.tableData.forEach(item => {
+                    this.form.area_id.push(item.area_id)
+                    this.form.first.push(item.first)
+                    this.form.first_price.push(item.first_price)
+                    this.form.continue.push(item.continue)
+                    this.form.continue_price.push(item.continue_price)
+                })
+
+                this.$refs[formName].validate(async (valid) => {
+                    if (valid) {
+
+                        let res = await request.post(this.baseIndex + 'shipping/add', this.form)
+                        if (res.code == 0) {
+                            this.$message.success(res.msg)
+                            setTimeout(() => {
+                                this.goBack()
+                            }, 800)
+                        } else {
+                            this.$message.error(res.msg)
+                        }
+                    }
+                })
+            },
+            delTpl(index) {
+                this.tableData.splice(index, 1)
+            },
+            // 添加模板
+            addTpl() {
+                this.tableData.push({
+                    area_name: '点击设置可配送区域和运费',
+                    area_id: '',
+                    first: '1.00',
+                    first_price: '6.00',
+                    continue: '1.00',
+                    continue_price: '2.00'
+                });
+            },
+            // 这是配送区域
+            setArea(index) {
+                this.nowIndex = index
+                this.getAllArea()
+                this.dialogVisible = true
+            },
+            // 获取所有的区域
+            async getAllArea() {
+                let res = await request.get(this.baseIndex + 'city/area')
+                this.area = res.data
+            },
+            // 选择区域
+            selectCity() {
+                let selectedData = this.$refs.tree.getCheckedNodes()
+                let cityMap = new Map();
+                let provinceStr = ''
+                let areaIdStr = ''
+                let cityStr = ''
+                let provinceData = new Map();
+
+                this.area.forEach(item => {
+                    provinceData.set(item.id, item.name)
+                })
+
+                let alreadySetProvince = []
+                selectedData.forEach(v => {
+                    if (v.level == 1) {
+                        provinceStr += v.name + '(全省)、'
+                        areaIdStr += '2-' + v.id + '-0|'
+                        alreadySetProvince.push(v.id)
+                    } else {
+                        if (alreadySetProvince.indexOf(v.pid) == -1) {
+                            if (!cityMap.get(v.pid)) {
+                                cityMap.set(v.pid, [])
+                            }
+
+                            cityMap.get(v.pid).push(v);
+                        }
+                    }
+                })
+
+                for (var key of cityMap.keys()) {
+
+                    cityStr += provinceData.get(key) + '('
+                    cityMap.get(key).forEach(v => {
+                        cityStr += v.name + '、'
+                        areaIdStr += '3-' + v.pid + '-' + v.id + '|'
+                    })
+                    cityStr = cityStr.substring(0, cityStr.length - 1)
+                    cityStr += ')、'
+                }
+
+                cityStr = cityStr.substring(0, cityStr.length - 1)
+                let finalStr = '';
+                if (cityStr == '') {
+                    finalStr = provinceStr.substring(0, provinceStr.length - 1);
+                } else {
+                    finalStr = provinceStr + cityStr;
+                }
+
+                areaIdStr = areaIdStr.substring(0, areaIdStr.length - 1)
+                this.$set(this.tableData, this.nowIndex, {
+                    area_name: finalStr,
+                    area_id: areaIdStr,
+                    first: '3.00',
+                    first_price: '6.00',
+                    continue: '1.00',
+                    continue_price: '2.00'
+                })
+
+                this.dialogVisible = false
+            }
+        }
+    })
+</script>
+<style>
+    .el-table__header tr,
+    .el-table__header th {
+        padding: 0;
+        height: 20px;
+        line-height: 20px;
+    }
+    .el-dialog-div {
+        height: 60vh;
+        overflow-x: hidden;
+    }
+</style>
+</body>
+</html>

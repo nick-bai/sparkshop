@@ -1,0 +1,44 @@
+<el-form :model="form" :rules="rules" ref="ruleForm" label-width="80px" :key="formKey">
+    <el-form-item label="所属角色" prop="role_id">
+        <el-select v-model="form.role_id" placeholder="请选择" style="width: 100%">
+            <el-option
+                    v-for="item in roles"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id">
+            </el-option>
+        </el-select>
+    </el-form-item>
+    <el-form-item label="登录名" prop="name">
+        <el-input v-model="form.name" placeholder="登录名(纯字母)"></el-input>
+    </el-form-item>
+    <el-form-item label="密码" prop="password">
+        <el-input v-model="form.password"></el-input>
+    </el-form-item>
+    <el-form-item label="昵称" prop="nickname">
+        <el-input v-model="form.nickname"></el-input>
+    </el-form-item>
+    <el-form-item label="头像" prop="avatar">
+        <ul class="img-list">
+            <li v-if="form.avatar">
+                <img :src="form.avatar" width="58px" height="58px" alt="图片">
+                <div class="img-tools">
+                    <i class="el-icon-delete" style="font-size: 14px;color: #fff" @click="removeImg()"></i>
+                </div>
+            </li>
+            <li>
+                <div class="addImg" @click="showImage">
+                    <i class="el-icon-plus"></i>
+                </div>
+            </li>
+        </ul>
+    </el-form-item>
+    <el-form-item label="状态" prop="status">
+        <el-radio v-model="form.status" :label="1">正常</el-radio>
+        <el-radio v-model="form.status" :label="2">禁用</el-radio>
+    </el-form-item>
+</el-form>
+<div slot="footer" class="dialog-footer">
+    <el-button @click="dialogVisible = false" size="small">取 消</el-button>
+    <el-button type="primary" @click="optSubmit('ruleForm')" size="small" :loading="loading">确 定</el-button>
+</div>

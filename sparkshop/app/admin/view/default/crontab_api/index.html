@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>定时任务</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+</head>
+<body>
+<div id="app">
+    <div class="app-loading" v-if="pageLoading">
+        <div class="app-loading__logo">
+            <img src="{__IMG__}/logo.png"/>
+        </div>
+        <div class="app-loading__loader"></div>
+        <div class="app-loading__title">{$title}</div>
+    </div>
+    <el-card class="box-card" v-else>
+        <div slot="header" class="clearfix">
+            <span>定时任务</span>
+        </div>
+        <el-button type="primary" icon="el-icon-plus" @click="addTask()" size="small">添加</el-button>
+        <el-button type="danger" icon="el-icon-refresh" @click="reload()" size="small">重启服务</el-button>
+        <el-button icon="el-icon-refresh" @click="refresh()" size="small">刷新</el-button>
+        <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-top: 10px"></div>
+        <el-table :data="tableData" style="width: 100%;margin-top: 20px;">
+            <el-table-column prop="id" label="ID"></el-table-column>
+            <el-table-column prop="title" label="标题"></el-table-column>
+            <el-table-column prop="frequency" label="规则" ></el-table-column>
+            <el-table-column prop="running_times" label="执行次数"></el-table-column>
+            <el-table-column label="状态">
+                <template slot-scope="scope">
+                    <el-switch v-model="scope.row.status" active-color="#13ce66" inactive-color="#ff4949" :active-value="1" :inactive-value="0" @change="changeStatus($event, scope.row)"/>
+                </template>
+            </el-table-column>
+            <el-table-column prop="sort" label="排序"></el-table-column>
+            <el-table-column prop="create_time" label="创建时间"></el-table-column>
+            <el-table-column label="操作">
+                <template slot-scope="scope">
+                    <el-button @click="handleLog(scope.row)" type="text" size="small">执行日志</el-button>
+                    <el-button @click="handleDel(scope.row)" type="text" size="small">删除</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+        <div style="margin-top:20px"></div>
+        <el-pagination background layout="->, prev, pager, next" :total="total" :page-size="searchForm.limit" @current-change="pageChange"/>
+
+    </el-card>
+
+    <el-dialog
+        title="创建定时任务"
+        :visible.sync="dialogVisible"
+        :close-on-click-modal="false"
+        width="1200px">
+        {include file="/crontab_api/form"}
+    </el-dialog>
+
+    <el-dialog
+        title="运行日志"
+        :visible.sync="logVisible"
+        :close-on-click-modal="false"
+        width="1200px">
+        {include file="/crontab_api/log"}
+    </el-dialog>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                pageLoading: true,
+                total: 1,
+                searchForm: {
+                    page: 1,
+                    limit: 15
+                },
+                dialogVisible: false,
+                logVisible: false,
+                form: {
+                    title: '',
+                    type: 2,
+                    shell: '',
+                    frequency: {
+                        type: "1",
+                        day: "1",
+                        week: "1",
+                        hour: "1",
+                        minute: "1",
+                        second: "1"
+                    },
+                    status: 0,
+                    sort: 0
+                },
+                loading: false,
+                tableData: [],
+                baseIndex: '/{:config("shop.backend_index")}/',
+                rules: {},
+                mode: 'add',
+                logTableData: [],
+                logLoading: false,
+                logPage: {
+                    sid: 0,
+                    page: 1,
+                    limit: 10
+                },
+                logTotal: 0
+            }
+        },
+        mounted() {
+            this.getList()
+            this.pageLoading = false
+        },
+        methods: {
+            search() {
+                this.searchForm.page = 1
+                this.getList()
+            },
+            pageChange(page) {
+                this.searchForm.page = page
+                this.getList()
+            },
+            // 获取列表
+            async getList() {
+                let res = await request.get(this.baseIndex + 'crontabApi/index')
+                if (res.code == 200 && res.data) {
+                    this.tableData = res.data.list
+                    this.total = res.data.count
+                }
+            },
+            // 刷新
+            refresh() {
+                this.searchForm.page = 1
+                this.getList()
+            },
+            // 删除
+            async handleDel(row) {
+                this.$confirm('确定删除该定时任务吗?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    let res = await request.post(this.baseIndex + 'crontabApi/del', {id: row.id})
+                    if (res.code == 200) {
+                        this.$message.success('操作成功')
+                        setTimeout(() => {
+                            this.getList()
+                        }, 800);
+                    } else {
+                        this.$message.error(res.msg)
+                    }
+                }).catch(() => {})
+            },
+            // 添加定时任务
+            addTask() {
+                this.mode = 'add'
+                this.form = {
+                    title: '',
+                        type: 2,
+                        shell: '',
+                        frequency: {
+                        type: "1",
+                            day: "1",
+                            week: "1",
+                            hour: "1",
+                            minute: "1",
+                            second: "1"
+                    },
+                    status: 0,
+                        sort: 0
+                }
+                this.dialogVisible = true
+            },
+            // 查看执行日志
+            handleLog(row) {
+                this.logVisible = true
+                this.logPage.sid = row.id
+                this.getRunLog()
+            },
+            // 添加成功
+            handleSuccess() {
+                this.searchForm.page = 1
+                this.getList()
+            },
+            // 改变状态
+            async changeStatus(val, row) {
+                let res = await request.post(this.baseIndex + 'crontabApi/edit', {field: 'status', value: val, id: row.id})
+                if (res.code == 200) {
+                    this.$message.success('操作成功')
+                } else {
+                    this.$message.error(res.msg);
+                }
+            },
+            // 重启服务
+            reload() {
+                this.$confirm('确定重启定时任务吗,重启定时任务可能导致某些业务中断，请谨慎操作?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    let res = await request.post(this.baseIndex + 'crontabApi/reload')
+                    if (res.code == 200) {
+                        this.$message.success('操作成功')
+                        setTimeout(() => {
+                            this.getList()
+                        }, 800);
+                    } else {
+                        this.$message.error(res.msg)
+                    }
+                }).catch(() => {})
+            },
+            // 保存
+            async submit() {
+                this.loading = true;
+                var res;
+                if (this.mode == 'add') {
+                    res = await request.post(this.baseIndex + 'crontabApi/add', this.form)
+                } else {
+                    res = await request.post(this.baseIndex + 'crontabApi/edit', this.form)
+                }
+                this.loading = false;
+                if (res.code == 200) {
+                    this.dialogVisible = false;
+                    this.getList()
+                    this.$message.success(res.msg)
+                } else {
+                    this.$message.error(res.msg)
+                }
+            },
+            // 运行日志
+            async getRunLog() {
+                this.logLoading = true
+                let res = await request.post(this.baseIndex + 'crontabApi/flow', this.logPage)
+                this.logLoading = false
+                if (res.code == 200) {
+                    this.logTableData = res.data.list
+                    this.logTotal = res.data.count
+                }
+            },
+            // 获取运行日志
+            handleLogCurrentChange(page) {
+                this.logPage.page = page
+                this.getRunLog()
+            },
+            // 刷新
+            logRefresh() {
+                this.logLoading = true
+                this.logPage.page = 1
+                this.getRunLog()
+            },
+        }
+    });
+</script>
+<style>
+    .suffix {
+        position: relative;
+        top: -40px;
+        left: 120px;
+    }
+</style>
+</body>
+</html>

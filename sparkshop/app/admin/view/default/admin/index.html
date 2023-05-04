@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>管理员管理</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+</head>
+<body>
+<!-- 组件导入 -->
+{include file="/components/fileSelect"}
+<div id="app">
+    <el-card class="box-card">
+        <div slot="header" class="clearfix">
+            <span>管理员管理</span>
+        </div>
+        <div class="search-box">
+            <el-form :inline="true" :model="searchForm" class="demo-form-inline">
+                <el-form-item label="管理员昵称">
+                    <el-input v-model="searchForm.nickname" placeholder="" clearable size="small"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="onSubmit" size="small" icon="el-icon-search">查询</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+        <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-bottom: 10px"></div>
+        <el-button type="primary" icon="el-icon-plus" size="small" @click="addAdmin" style="margin-top: 10px">添加管理员
+        </el-button>
+        <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-top: 10px"></div>
+        <el-table
+                :data="tableData"
+                style="width: 100%;">
+            <el-table-column
+                    prop="id"
+                    label="ID">
+            </el-table-column>
+            <el-table-column
+                    prop="name"
+                    label="登录名">
+            </el-table-column>
+            <el-table-column
+                    prop="nickname"
+                    label="昵称">
+            </el-table-column>
+            <el-table-column
+                    label="头像">
+                <template slot-scope="scope">
+                    <img :src="scope.row.avatar" width="30px" height="30px">
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="role.name"
+                    label="角色">
+            </el-table-column>
+            <el-table-column
+                    label="状态">
+                <template slot-scope="scope">
+                    <el-tag type="success" v-if="scope.row.status == 1">正常</el-tag>
+                    <el-tag type="danger" v-if="scope.row.status == 2">禁用</el-tag>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="create_time"
+                    label="创建时间">
+            </el-table-column>
+            <el-table-column
+                    prop="operation"
+                    label="操作">
+                <template slot-scope="scope">
+                    <el-button @click="handleEdit(scope.row)" type="text" size="small" v-if="scope.row.id > 1">编辑</el-button>
+                    <el-button @click="handleDel(scope.row)" type="text" size="small" v-if="scope.row.id > 1">删除</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+        <el-pagination
+                style="margin-top: 10px"
+                background
+                layout="->, prev, pager, next"
+                :page-size="searchForm.limit"
+                @current-change="handlePageChange"
+                :total="total">
+        </el-pagination>
+
+        <el-dialog :title="title" :visible.sync="dialogVisible" width="600px" destroy-on-close>
+            {include file="/admin/save"}
+        </el-dialog>
+    </el-card>
+
+    <el-dialog title="" :visible.sync="fileSelectVisible" width="1200px" class="image-check-dialog">
+        <file-select :need-select="true" @selected-img="selectedImg" @close-dialog="fileSelectVisible=false" :select-num="1"></file-select>
+    </el-dialog>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                searchForm: {
+                    nickname: '',
+                    limit: 15,
+                    page: 1
+                },
+                fileSelectVisible: false,
+                dialogVisible: false,
+                title: '新增管理员',
+                total: 1,
+                tableData: [],
+                baseIndex: '/{:config("shop.backend_index")}/',
+                dialogCateVisible: false,
+                form: {
+                    id: 0,
+                    name: '',
+                    nickname: '',
+                    password: '',
+                    avatar: '',
+                    role_id: '',
+                    status: 1
+                },
+                roles: [],
+                rules: {
+                    name: [
+                        {required: true, message: '请输入登录名称', trigger: 'blur'}
+                    ],
+                    nickname: [
+                        {required: true, message: '请输入昵称', trigger: 'blur'}
+                    ],
+                    role_id: [
+                        {required: true, message: '请选择所属角色', trigger: 'blur'}
+                    ],
+                    avatar: [
+                        {required: true, message: '请设置头像', trigger: 'blur'}
+                    ],
+                    status: [
+                        {required: true, message: '请选择状态', trigger: 'blur'}
+                    ]
+                },
+                loading: false,
+                formKey: Date.parse(new Date()),
+            }
+        },
+        mounted() {
+            this.getList()
+        },
+        methods: {
+            // 获取列表
+            async getList() {
+                let res = await request.get(this.baseIndex + 'admin/index', this.searchForm)
+                this.tableData = res.data.data
+                this.total = res.data.total
+            },
+            // 初始化表单
+            initForm() {
+                this.form = {
+                    id: 0,
+                    name: '',
+                    nickname: '',
+                    password: '',
+                    avatar: '',
+                    role_id: '',
+                    status: 1
+                }
+            },
+            // 搜索
+            onSubmit() {
+                this.getList()
+            },
+            addAdmin() {
+                this.title = '添加管理员'
+                this.initForm()
+                this.dialogVisible = true
+                this.rules.password = [
+                    { required: true, message: '请输入密码', trigger: 'blur' }
+                ]
+                this.formKey = Date.parse(new Date())
+                this.getAllRolesAdd()
+            },
+            // 编辑参数
+            handleEdit(item) {
+                this.title = '编辑管理员'
+                delete this.rules.password
+                this.formKey = Date.parse(new Date())
+                this.dialogVisible = true
+
+                this.form.id = item.id
+                this.form.name = item.name
+                this.form.nickname = item.nickname
+                this.form.avatar = item.avatar
+                this.form.role_id = item.role_id
+                this.form.status = item.status
+
+                this.getAllRolesEdit()
+            },
+            // 删除参数
+            handleDel(item) {
+                this.$confirm('此操作将永久删除该管理员 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    let res = await request.get(this.baseIndex + 'admin/del', {id: item.id})
+                    if (res.code == 0) {
+                        this.$message.success(res.msg)
+                        this.getList()
+                    } else {
+                        this.$message.error(res.msg)
+                    }
+                }).catch(() => {
+                });
+            },
+            // 选资源
+            showImage() {
+                this.fileSelectVisible = true
+            },
+            selectedImg(file) {
+                this.form.avatar = file[0].url
+                this.fileSelectVisible = false
+            },
+            // 移除图片
+            removeImg() {
+                this.form.avatar = ''
+            },
+            // 分页
+            handlePageChange(page) {
+                this.searchForm.page = page
+                this.getList()
+            },
+            // 获取所有的角色 -add
+            async getAllRolesAdd() {
+                let res = await request.get(this.baseIndex + 'admin/add')
+                this.roles = res.data
+            },
+            async getAllRolesEdit(){
+                let res = await request.get(this.baseIndex + 'admin/edit')
+                this.roles = res.data
+            },
+            // 新增或编辑
+            optSubmit(formName) {
+                this.$refs[formName].validate(async (valid) => {
+                    if (valid) {
+                        this.loading = true
+                        let res;
+                        if (this.form.id) {
+                            res = await request.post(this.baseIndex + 'admin/edit', this.form)
+                        } else {
+                            res = await request.post(this.baseIndex + 'admin/add', this.form)
+                        }
+                        this.loading = false
+                        if (res.code == 0) {
+                            this.dialogVisible = false
+                            this.$message.success(res.msg)
+                            this.getList()
+                        } else {
+                            this.$message.error(res.msg)
+                        }
+                    }
+                });
+            }
+        }
+    });
+</script>
+<style>
+    p {
+        padding: 0;
+        margin: 0;
+    }
+
+    .el-table__header tr,
+    .el-table__header th {
+        padding: 0;
+        height: 20px;
+        line-height: 20px;
+    }
+
+    .del-btn {
+        cursor: pointer;
+        color: #F56C6C
+    }
+
+    .add-btn {
+        cursor: pointer;
+        margin-top: 18px;
+        color: #409EFF
+    }
+    .img-list {
+        height: 60px;
+        padding-left: 0;
+        margin-top: 0;
+    }
+    .img-list li:first-child {
+        margin-left: 0;
+    }
+    .img-list li {
+        width: 58px;
+        height: 58px;
+        float: left;
+        margin-left: 5px;
+        cursor: pointer;
+        position: relative;
+    }
+    .addImg {
+        height: 56px;
+        width: 56px;
+        line-height: 56px;
+        text-align: center;
+        border: 1px dashed rgb(221, 221, 221);
+    }
+    ul li {list-style: none}
+    .image-check-dialog .el-dialog__header {display: none}
+    .image-check-dialog .el-dialog__body {padding: 0;}
+    .img-list .img-tools {
+        position: absolute;
+        width: 58px;
+        height: 15px;
+        line-height: 15px;
+        text-align: center;
+        top: 43px;
+        background: rgba(0, 0, 0, 0.6);
+        cursor: pointer;
+    }
+</style>
+</body>
+</html>

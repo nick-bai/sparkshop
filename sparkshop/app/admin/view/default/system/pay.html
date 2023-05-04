@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>支付配置</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+</head>
+<body>
+<div id="app">
+    <div class="app-loading" v-if="pageLoading">
+        <div class="app-loading__logo">
+            <img src="{__IMG__}/logo.png"/>
+        </div>
+        <div class="app-loading__loader"></div>
+        <div class="app-loading__title">{$title}</div>
+    </div>
+    <el-card class="box-card" v-else>
+        <div slot="header" class="clearfix">
+            <span>支付配置</span>
+        </div>
+        <el-tabs v-model="activeName">
+            <el-tab-pane label="微信支付" name="first">
+                <el-form ref="form" :model="wechatForm" label-width="130px">
+                    <el-form-item label="是否开启">
+                        <el-radio :label="1" v-model="wechatForm.wechat_pay_open">开启</el-radio>
+                        <el-radio :label="2" v-model="wechatForm.wechat_pay_open">关闭</el-radio>
+                    </el-form-item>
+                    <el-form-item label="公众号AppID">
+                        <el-input v-model="wechatForm.wechat_pay_app_id" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="小程序AppID">
+                        <el-input v-model="wechatForm.wechat_miniapp_id" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="商户ID(Mchid)">
+                        <el-input v-model="wechatForm.wechat_pay_mchid" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="密钥(Key)">
+                        <el-input v-model="wechatForm.wechat_pay_key" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="微信支付证书">
+                        <el-upload
+                                class="upload-demo"
+                                action="{:url('attachment/uploadOtherFile')}"
+                                :on-success="successHandle"
+                                :limit="2"
+                                :file-list="fileList">
+                            <el-button size="small" type="primary">点击上传</el-button>
+                        </el-upload>
+                    </el-form-item>
+                    <el-form-item label="微信支付证书密钥">
+                        <el-upload
+                                class="upload-demo"
+                                action="{:url('attachment/uploadOtherFile')}"
+                                :on-success="successHandle2"
+                                :limit="2"
+                                :file-list="fileList2">
+                            <el-button size="small" type="primary">点击上传</el-button>
+                        </el-upload>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="saveWechat">立即保存</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-tab-pane>
+            <el-tab-pane label="支付宝支付" name="second">
+                <el-form ref="form" :model="alipayForm" label-width="130px">
+                    <el-form-item label="是否开启">
+                        <el-radio :label="1" v-model="alipayForm.alipay_open">开启</el-radio>
+                        <el-radio :label="2" v-model="alipayForm.alipay_open">关闭</el-radio>
+                    </el-form-item>
+                    <el-form-item label="支付应用Appid">
+                        <el-input v-model="alipayForm.alipay_app_id" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="支付应用私钥">
+                        <el-input v-model="alipayForm.alipay_private_key" type="textarea" style="width: 500px" rows="7"></el-input>
+                    </el-form-item>
+                    <el-form-item label="支付应用公钥">
+                        <el-input v-model="alipayForm.alipay_public_key" type="textarea" style="width: 500px" rows="7"></el-input>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="saveAlipay">立即保存</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-tab-pane>
+            <el-tab-pane label="余额支付" name="third">
+                <el-form ref="form" :model="balanceForm" label-width="130px">
+                    <el-form-item label="是否开启">
+                        <el-radio :label="1" v-model="balanceForm.balance_open">开启</el-radio>
+                        <el-radio :label="2" v-model="balanceForm.balance_open">关闭</el-radio>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="saveBalance">立即保存</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-tab-pane>
+        </el-tabs>
+    </el-card>
+</div>
+<script>
+
+    let alipayForm = {$alipay|raw};
+    let wechatForm = {$wechat|raw};
+    let balanceForm = {$balance|raw};
+
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                pageLoading: true,
+                alipayForm: alipayForm,
+                wechatForm: wechatForm,
+                balanceForm: balanceForm,
+                activeName: 'first',
+                baseIndex: '/{:config("shop.backend_index")}/',
+                fileList: [],
+                fileList2: []
+            }
+        },
+        mounted() {
+            this.wechatForm.wechat_pay_open = parseInt(this.wechatForm.wechat_pay_open)
+            this.alipayForm.alipay_open = parseInt(this.alipayForm.alipay_open)
+            this.balanceForm.balance_open = parseInt(this.balanceForm.balance_open)
+
+            this.fileList = [{
+                name: this.wechatForm.wechat_pay_cert,
+                url: this.wechatForm.wechat_pay_cert
+            }]
+
+            this.fileList2 = [{
+                name: this.wechatForm.wechat_pay_pem,
+                url: this.wechatForm.wechat_pay_pem
+            }]
+            this.pageLoading = false
+        },
+        methods: {
+            // 保存alipay
+            async saveAlipay() {
+                let res = await request.post(this.baseIndex + 'system/pay', this.alipayForm)
+                if (res.code == 0) {
+                    this.$message.success('保存成功')
+                } else {
+                    this.$message.error(res.msg)
+                }
+            },
+            // 保存微信
+            async saveWechat() {
+                let res = await request.post(this.baseIndex + 'system/pay', this.wechatForm)
+                if (res.code == 0) {
+                    this.$message.success('保存成功')
+                } else {
+                    this.$message.error(res.msg)
+                }
+            },
+            // 保存余额支付
+            async saveBalance() {
+                let res = await request.post(this.baseIndex + 'system/pay', this.balanceForm)
+                if (res.code == 0) {
+                    this.$message.success('保存成功')
+                } else {
+                    this.$message.error(res.msg)
+                }
+            },
+            // 上传微信支付证书
+            successHandle(file) {
+                this.fileList = [{
+                    name: file.data.url,
+                    url: file.data.url
+                }]
+
+                this.wechatForm.wechat_pay_cert = file.data.url
+            },
+            // 微信支付证书密钥
+            successHandle2(file) {
+                this.fileList2 = [{
+                    name: file.data.url,
+                    url: file.data.url
+                }]
+
+                this.wechatForm.wechat_pay_pem = file.data.url
+            }
+        }
+    })
+</script>
+<style>
+
+</style>
+</body>
+</html>

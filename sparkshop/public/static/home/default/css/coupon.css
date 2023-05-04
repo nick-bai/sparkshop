@@ -1,0 +1,146 @@
+html,body {
+    width: 100%;
+    height: 100%;
+}
+.coupon-list {
+    width: 100%;
+    height: 100%;
+}
+.coupon-item {
+    width: 380px;
+    height: 100px;
+    margin: 0 auto;
+    border-bottom: 1px dashed #e2e2e2;
+    margin-bottom: 10px;
+}
+.coupon-item-list {
+    width: 100%;
+    height: 100px;
+    border-bottom: 1px dashed #e2e2e2;
+    margin-top: 10px;
+}
+.coupon {
+    width: 20rem;
+    height: 4rem;
+    position: relative;
+    float: left;
+}
+
+.coupon::before, .coupon::after {
+    content: '';
+    position: absolute;
+    top: calc(1rem + 2px);
+    width: calc(2rem - 4px);
+    height: calc(2rem - 4px);
+    background-color: white;
+    z-index: 2;
+}
+
+.coupon::before {
+    left: -1rem;
+    border-radius: 0 calc(1rem - 2px) calc(1rem - 2px) 0;
+}
+
+.coupon::after {
+    right: -1rem;
+    border-radius: calc(1rem - 2px) 0 0 calc(1rem - 2px);
+}
+
+.coupon-inner {
+    width: 100%;
+    height: 100%;
+    background: white;
+    box-shadow: 1px 1px 6px rgba(0, 0, 0, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.coupon-inner::before, .coupon-inner::after {
+    background-color: white;
+    border-radius: 1rem;
+    box-shadow: inset 1px 1px 6px rgba(0, 0, 0, 0.15);
+    content: '';
+    width: 2rem;
+    height: 2rem;
+    position: absolute;
+    top: 1rem;
+    z-index: 1;
+}
+
+.coupon-inner::before {
+    left: -1rem;
+}
+
+.coupon-inner::after {
+    right: -1rem;
+}
+
+.coupon-inner div {
+    float: left;
+}
+
+.coupon-inner .title {
+    width: 30%;
+    height: 100%;
+    background: #e93323;
+    line-height: 64px;
+    text-align: center;
+    color: #fff;
+}
+
+.coupon-inner .content {
+    width: 69%;
+    height: 100%;
+    font-size: 12px;
+}
+
+.coupon-inner .content .name {
+    font-size: 14px;
+    margin-left: 45px;
+    margin-top: 10px;
+    display: inline-block;
+    font-weight: 500;
+}
+
+.coupon-inner .content .date {
+    margin-left: 5px;
+    color:#757575;
+    margin-top: 10px;
+    display: inline-block;
+}
+
+.coupon-select {
+    float: right;
+    width: 30px;
+    height: 30px;
+    margin-top: 22px;
+    cursor: pointer;
+}
+
+.coupon-select input {
+    height: 20px;
+    width: 20px;
+}
+
+.overdue {
+    background: #757575 !important;
+}
+.overdue-txt {
+    color: #757575 !important;
+}
+
+.notice {
+    text-align: left;
+    color: #757575;
+    clear: both;
+    font-size: 13px;
+    padding-top: 10px;
+}
+
+.coupon-type {
+    border-radius: 20px;
+    background: #e93323;
+    color: #fff;
+    font-size: 10px !important;
+    padding: 3px;
+}

@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>订单管理</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+    <script src="{__JS__}/shim.min.js"></script>
+    <script src="{__JS__}/xlsx.full.min.js"></script>
+</head>
+<body>
+<div id="app">
+    <div class="app-loading" v-if="pageLoading">
+        <div class="app-loading__logo">
+            <img src="{__IMG__}/logo.png"/>
+        </div>
+        <div class="app-loading__loader"></div>
+        <div class="app-loading__title">{$title}</div>
+    </div>
+    <el-card class="box-card" v-else>
+        <div slot="header" class="clearfix">
+            <span>订单管理</span>
+        </div>
+        <div class="search-box">
+            <el-form ref="form" :model="searchForm" label-width="80px">
+                <el-form-item label="订单类型" style="margin-bottom: 10px;">
+                    <el-button-group>
+                        <el-button :class="{'primary': searchForm.type == 0}" size="small" @click="checkOrder(0)">全部</el-button>
+                        <el-button :class="{'primary': searchForm.type == 1}" size="small" @click="checkOrder(1)">普通订单</el-button>
+                        <el-button :class="{'primary': searchForm.type == 3}" size="small" @click="checkOrder(3)">秒杀订单</el-button>
+                        <el-button :class="{'primary': searchForm.type == 5}" size="small" @click="checkOrder(5)">删除的订单</el-button>
+                    </el-button-group>
+                </el-form-item>
+                <el-form-item label="订单状态" style="margin-bottom: 10px;">
+                    <el-button-group>
+                        <el-button :class="{'primary': searchForm.status == 0}" size="small" @click="checkOrderStatus(0)">全部</el-button>
+                        <el-button :class="{'primary': searchForm.status == 2}" size="small" @click="checkOrderStatus(2)">待支付</el-button>
+                        <el-button :class="{'primary': searchForm.status == 3}" size="small" @click="checkOrderStatus(3)">
+                            <el-badge :value="unDelivery" class="item" type="danger" v-if="unDelivery > 0">待发货</el-badge>
+                            <span v-else>待发货</span>
+                        </el-button>
+                        <el-button :class="{'primary': searchForm.status == 4}" size="small" @click="checkOrderStatus(4)">待收货</el-button>
+                        <el-button :class="{'primary': searchForm.status == 5}" size="small" @click="checkOrderStatus(5)">部分发货</el-button>
+                        <el-button :class="{'primary': searchForm.status == 6}" size="small" @click="checkOrderStatus(6)">交易完成</el-button>
+                        <el-button :class="{'primary': searchForm.status == 7}" size="small" @click="checkOrderStatus(7)">已取消</el-button>
+                        <el-button :class="{'primary': searchForm.status == 8}" size="small" @click="checkOrderStatus(8)">已关闭</el-button>
+                        <el-button :class="{'primary': searchForm.status == 9}" size="small" @click="checkOrderStatus(9)">库存不足</el-button>
+                    </el-button-group>
+                </el-form-item>
+                <el-form-item label="支付状态" style="margin-bottom: 10px;">
+                    <el-button-group>
+                        <el-button :class="{'primary': searchForm.pay_status == 0}" size="small" @click="checkPayStatus(0)">全部</el-button>
+                        <el-button :class="{'primary': searchForm.pay_status == 1}" size="small" @click="checkPayStatus(1)">待支付</el-button>
+                        <el-button :class="{'primary': searchForm.pay_status == 2}" size="small" @click="checkPayStatus(2)">已支付</el-button>
+                        <el-button :class="{'primary': searchForm.pay_status == 3}" size="small" @click="checkPayStatus(3)">已退款</el-button>
+                        <el-button :class="{'primary': searchForm.pay_status == 4}" size="small" @click="checkPayStatus(4)">部分退款</el-button>
+                        <el-button :class="{'primary': searchForm.pay_status == 5}" size="small" @click="checkPayStatus(5)">部分支付</el-button>
+                        <el-button :class="{'primary': searchForm.pay_status == 6}" size="small" @click="checkPayStatus(6)">支付异常</el-button>
+                    </el-button-group>
+                </el-form-item>
+            </el-form>
+            <el-form :inline="true" :model="searchForm" class="demo-form-inline" label-width="80px">
+                <el-form-item label="支付单号">
+                    <el-input v-model="searchForm.order_no" placeholder="支付单号" style="width: 300px" size="small"></el-input>
+                </el-form-item>
+                <el-form-item label="下单时间">
+                    <el-date-picker
+                            size="small"
+                            v-model="searchForm.create_time"
+                            type="daterange"
+                            value-format="yyyy-MM-dd"
+                            range-separator="至"
+                            start-placeholder="开始日期"
+                            end-placeholder="结束日期">
+                    </el-date-picker>
+                </el-form-item>
+                <el-form-item label="支付方式">
+                    <el-select v-model="searchForm.pay_way" placeholder="支付方式" style="width: 300px" clearable size="small">
+                        <el-option label="微信" value="1"></el-option>
+                        <el-option label="支付宝" value="2"></el-option>
+                        <el-option label="余额" value="3"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="下单人ID">
+                    <el-input v-model="searchForm.user_id" placeholder="下单人id" style="width: 300px" type="number" clearable size="small"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="search" icon="el-icon-search" size="small">查询</el-button>
+                    <el-button type="primary" @click="exportOrder" icon="el-icon-position" size="small">导出</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+        <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-bottom: 10px"></div>
+        <el-table
+                v-loading="tableLoading"
+                :data="tableData"
+                :row-style="{ height: '57px'}"
+                style="width: 100%;font-size: 12px">
+            <el-table-column
+                    label="订单号"
+                    width="200px">
+                <template slot-scope="scope">
+                    <p>{{ scope.row.order_no }}</p>
+                    <p>[{{ scope.row.order_txt }}]</p>
+                    <p>
+                        <el-tag v-if="scope.row.is_del == 2" size="mini" type="warning">后台已删除</el-tag>
+                        <el-tag v-if="scope.row.user_del == 2" size="mini" type="danger">用户已删除</el-tag>
+                    </p>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    label="购买人"
+                    width="150px">
+                <template slot-scope="scope">
+                    <p>{{ scope.row.user.nickname }}</p>
+                    <p>ID: {{ scope.row.user.id }}</p>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    label="商品信息"
+                    width="350px">
+                <template slot-scope="scope">
+                    <div v-for="item in scope.row.detail" :key="item.id">
+                        <div class="goods-info">
+                            <div class="goods-img">
+                                <img :src="item.logo" style="height: 36px;width: 36px">
+                            </div>
+                            <div class="goods-name">
+                                {{ item.goods_name }} | {{ item.rule.split('※').join(',') }}
+                            </div>
+                        </div>
+                        <div class="goods-price">
+                            ￥{{ item.price }} × {{ item.cart_num }}
+                        </div>
+                    </div>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="pay_price"
+                    label="实际支付">
+            </el-table-column>
+            <el-table-column
+                    prop="pay_status"
+                    label="支付状态">
+            </el-table-column>
+            <el-table-column
+                    label="订单状态"
+                    width="100px">
+                <template slot-scope="scope">
+                    <p>{{ scope.row.status_txt }}</p>
+                    <el-tag v-if="scope.row.refund_status == 1 && scope.row.refund_type == 1" size="mini" type="danger">退款中</el-tag>
+                    <el-tag v-if="scope.row.refund_status == 1 && scope.row.refund_type == 2" size="mini" type="danger">退货退款中</el-tag>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="pay_way"
+                    label="支付方式">
+            </el-table-column>
+            <el-table-column
+                    prop="pay_time"
+                    label="支付时间"
+                    width="160px">
+            </el-table-column>
+            <el-table-column
+                    prop="create_time"
+                    label="下单时间"
+                    width="160px">
+            </el-table-column>
+            <el-table-column
+                    label="操作"
+                    fixed="right"
+                    width="150px">
+                <template slot-scope="scope">
+                    <el-button @click="handleDeliver(scope.row)" type="text" size="small" v-if="scope.row.status == 3 || scope.row.status == 5">发货</el-button>
+                    <el-divider direction="vertical" v-if="scope.row.status == 3 || scope.row.status == 5"></el-divider>
+                    <el-dropdown @command="handleMore($event, scope.row)">
+                        <span class="el-dropdown-link" style="font-size: 12px">
+                        更多 <i class="el-icon-arrow-down el-icon--right"></i>
+                        </span>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item command="detail">订单详情</el-dropdown-item>
+                            <el-dropdown-item command="log">状态记录</el-dropdown-item>
+                            <el-dropdown-item command="complete" v-if="scope.row.status == 3 || scope.row.status == 4 || scope.row.status == 5">完成订单</el-dropdown-item>
+                            <el-dropdown-item command="del">删除订单</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </template>
+            </el-table-column>
+        </el-table>
+        <div class="page-div" style="margin-top: 20px">
+            <el-pagination
+                    background
+                    layout="prev, pager, next"
+                    :page-size="searchForm.limit"
+                    @current-change="pageChangeHandle"
+                    :total="page.total">
+            </el-pagination>
+        </div>
+    </el-card>
+
+    <el-dialog
+            title="订单详情"
+            :visible.sync="orderVisible"
+            width="60%">
+        {include file="/order/detail"}
+    </el-dialog>
+
+    <el-dialog
+            title="物流详情"
+            :visible.sync="expressVisible"
+            width="40%">
+        <el-timeline v-if="orderDetail.detail.result.list.length > 0">
+            <el-timeline-item
+                    v-for="(activity, index) in orderDetail.detail.result.list"
+                    :key="index"
+                    :timestamp="activity.time">
+                {{ activity.status }}
+            </el-timeline-item>
+        </el-timeline>
+        <el-empty description="暂无数据" v-else></el-empty>
+    </el-dialog>
+
+    <el-dialog
+            title="状态记录"
+            :visible.sync="orderLineVisible"
+            width="40%">
+        <el-timeline>
+            <el-timeline-item
+                    v-for="(item, index) in orderLog"
+                    :key="index"
+                    :timestamp="item.create_time">
+                {{ item.msg }}
+            </el-timeline-item>
+        </el-timeline>
+    </el-dialog>
+
+    <el-dialog
+            title="订单发货"
+            :visible.sync="deliverVisible"
+            width="40%">
+        <el-form ref="form" :model="deliverForm" label-width="80px">
+            <el-form-item label="选择类型">
+                <el-radio label="1" v-model="deliverForm.type" v-if="goodsType == 1">快递</el-radio>
+                <el-radio label="2" v-model="deliverForm.type">无需发货</el-radio>
+            </el-form-item>
+            <el-form-item label="快递公司" v-if="deliverForm.type == 1">
+                <el-select v-model="deliverForm.delivery_name" placeholder="请选择快递公司" style="width: 100%">
+                    <el-option :label="item.name" :value="item.name" v-for="item in express" :key="item.id"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="快递单号" v-if="deliverForm.type == 1">
+                <el-input v-model="deliverForm.delivery_no"></el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="doExpress" :loading="loading">立即提交</el-button>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+
+    <el-dialog
+            title="三方返回信息"
+            :visible.sync="thirdVisible"
+            width="1000px">
+        <el-empty description="暂无" v-if="third_return == ''"></el-empty>
+        <el-descriptions title="" direction="vertical" :column="4" border v-else>
+            <el-descriptions-item :label="key" v-for="item,key in third_return" :key="key">{{ item }}</el-descriptions-item>
+        </el-descriptions>
+    </el-dialog>
+</div>
+<script>
+    new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                pageLoading: true,
+                baseIndex: '/{:config("shop.backend_index")}/',
+                searchForm: {
+                    type: 0,
+                    status: 0,
+                    pay_status: 0,
+                    order_no: '',
+                    pay_way: '',
+                    user_id: '',
+                    create_time: '',
+                    page: 1,
+                    limit: 10
+                },
+                goodsType: 1,
+                deliverForm: {
+                    order_id: 0,
+                    type: '1',
+                    delivery_name: '',
+                    delivery_code: '',
+                    delivery_no: ''
+                },
+                express: [],
+                page: {
+                    total: 0
+                },
+                thirdVisible: false,
+                tableLoading: false,
+                loading: false,
+                tableData: [],
+                orderVisible: false,
+                expressVisible: false,
+                orderLineVisible: false,
+                deliverVisible: false,
+                orderLog: [],
+                orderDetail: {
+                    info: {
+                        user: {},
+                        address: {}
+                    },
+                    status: {},
+                    payWay: {},
+                    detail: {
+                        result: {
+                            list: []
+                        }
+                    },
+                    refund: {},
+                    refund_amount: {}
+                },
+                unDelivery: 0,
+                third_return: {}
+            }
+        },
+        mounted() {
+            this.getList()
+            this.pageLoading = false
+        },
+        methods: {
+            // 获取列表
+            async getList() {
+                let res = await request.get(this.baseIndex + "order/index", this.searchForm)
+                this.tableData = res.data.data
+                this.page.total = res.data.total
+                this.unDelivery = res.data.unDelivery
+            },
+            // 选择订单
+            checkOrder(type) {
+                this.searchForm.type = type
+                this.searchForm.page = 1
+                this.getList()
+            },
+            // 选择订单状态
+            checkOrderStatus(status) {
+                this.searchForm.status = status
+                this.getList()
+            },
+            // 支付状态
+            checkPayStatus(status) {
+                this.searchForm.pay_status = status
+                this.getList()
+            },
+            // 查询
+            search() {
+                this.getList()
+            },
+            pageChangeHandle(page) {
+                this.searchForm.page = page
+                this.getList()
+            },
+            // 发货
+            async handleDeliver(row) {
+                this.deliverForm.order_id = row.id
+                this.deliverVisible = true
+
+                let res = await request.get(this.baseIndex + "order/express", {id: row.id})
+                if (res.code == 0) {
+                    this.express = res.data.express
+                    this.goodsType = res.data.goods_type
+
+                    if (this.goodsType == 2) {
+                        this.deliverForm.type = '2'
+                    }
+                }
+            },
+            // 更多的方法
+            handleMore(event, row) {
+                if (event == 'detail') {
+                    this.orderVisible = true
+                    this.getOrderDetail(row.id)
+                } else if (event == 'log') {
+                    this.orderLineVisible = true
+                    this.getOrderLog(row.id)
+                } else if (event == 'complete') {
+                    this.completeOrder(row.id)
+                } else if (event == 'del') {
+                    this.delOrder(row.id)
+                }
+            },
+            // 订单详情
+            async getOrderDetail(id) {
+                let res = await request.get(this.baseIndex + "order/detail", {id: id})
+                this.orderDetail = res.data
+                // 设置默认数据
+                if (!this.orderDetail.detail || this.orderDetail.detail.length == 0) {
+                    this.orderDetail.detail = {
+                        result: {
+                            list: []
+                        }
+                    }
+                }
+            },
+            // 物流详情
+            showExpress() {
+                this.expressVisible = true
+            },
+            // 订单记录
+            async getOrderLog(id) {
+                let res = await request.get(this.baseIndex + "order/log", {id: id})
+                this.orderLog = res.data
+            },
+            // 物流发货
+            async doExpress() {
+                this.loading = true
+                this.express.forEach(item => {
+                    if (item.name == this.deliverForm.delivery_name) {
+                        this.deliverForm.delivery_code = item.code
+                    }
+                })
+                let res = await request.post(this.baseIndex + "order/express", this.deliverForm)
+                this.loading = false
+                if (res.code == 0) {
+                    this.deliverVisible = false
+                    this.deliverForm = {
+                        order_id: 0,
+                        type: '1',
+                        delivery_name: '',
+                        delivery_code: '',
+                        delivery_no: ''
+                    }
+                    this.$message.success(res.msg)
+                    this.getList()
+                } else {
+                    this.$message.error(res.msg)
+                }
+            },
+            // 完成订单
+            completeOrder(id) {
+                this.$confirm('确定完成该订单吗？订单状态不可逆，一旦标记为完成，则无法继续操作该订单，请谨慎操作！', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    let res = await request.get(this.baseIndex + 'order/complete', {id: id})
+                    if (res.code == 0) {
+                        this.getList()
+                        this.$message.success(res.msg)
+                    } else {
+                        this.$message.error(res.msg)
+                    }
+                }).catch(() => {});
+            },
+            // 删除订单
+            delOrder(id) {
+                this.$confirm('确定删除该订单吗？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    let res = await request.get(this.baseIndex + 'order/del', {id: id})
+                    if (res.code == 0) {
+                        this.getList()
+                        this.$message.success(res.msg)
+                    } else {
+                        this.$message.error(res.msg)
+                    }
+                }).catch(() => {});
+            },
+            // 导出订单
+            async exportOrder() {
+                let res = await request.get(this.baseIndex + 'order/export', this.searchForm)
+                if (res.code == 0) {
+                    const wb = XLSX.utils.book_new();
+                    let ws = XLSX.utils.aoa_to_sheet(res.data);
+                    ws['!cols'] = [
+                        { wpx: 200 }, { wpx: 100 }, { wpx: 100 }, { wpx: 500 }, { wpx: 500 }, { wpx: 100 },
+                        { wpx: 100 }, { wpx: 100 }, { wpx: 100 }, { wpx: 200 }, { wpx: 100 }, { wpx: 200 }, { wpx: 200 },
+                    ]
+
+                    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+                    XLSX.writeFile(wb, "订单信息" + Date.now() + ".xlsx");
+                }
+            },
+            // 三方信息详情
+            thirdDetail(info) {
+                this.thirdVisible = true
+                this.third_return = info.return_msg ? JSON.parse(info.return_msg) : ''
+            }
+        },
+    })
+</script>
+<style>
+    .primary {
+        color: #FFF;
+        background-color: #409EFF;
+        border-color: #409EFF;
+    }
+    .goods-info {
+        width: 100%;
+        display: flex;
+    }
+    .goods-info .goods-img {
+        height: 36px;
+        width: 36px;
+        margin-top: 6px;
+    }
+    .goods-name {
+        margin-left: 10px
+    }
+    .goods-price {
+        color: #F56C6C;
+        font-weight: 700;
+        padding-left: 36px;
+        margin-left: 10px
+    }
+    .el-dropdown-link {
+        cursor: pointer;
+        color: #409EFF;
+    }
+    .el-icon-arrow-down {
+        font-size: 12px;
+    }
+    .el-badge__content--danger {
+        top: -10px !important
+    }
+</style>
+</body>
+</html>

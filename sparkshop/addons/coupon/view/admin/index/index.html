@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>优惠券管理</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+</head>
+<body>
+{include file="../../../app/admin/view/default/components/goodsSelect"}
+<div id="app">
+    <div class="app-loading" v-if="pageLoading">
+        <div class="app-loading__logo">
+            <img src="{__IMG__}/logo.png"/>
+        </div>
+        <div class="app-loading__loader"></div>
+        <div class="app-loading__title">SparkShop</div>
+    </div>
+    <el-card class="box-card" v-else>
+        <div slot="header" class="clearfix">
+            <span>优惠券列表</span>
+        </div>
+        <div class="search-box">
+            <el-form :model="searchForm" label-width="80px">
+                <el-form-item label="状态">
+                    <el-button-group>
+                        <el-button :class="{'primary': searchForm.status == 0}" size="small" @click="checkTab(0)">全部</el-button>
+                        <el-button :class="{'primary': searchForm.status == 1}" size="small" @click="checkTab(1)">进行中</el-button>
+                        <el-button :class="{'primary': searchForm.status == 2}" size="small" @click="checkTab(2)">已作废</el-button>
+                        <el-button :class="{'primary': searchForm.status == 3}" size="small" @click="checkTab(3)">已过期</el-button>
+                        <el-button :class="{'primary': searchForm.status == 4}" size="small" @click="checkTab(4)">已领完</el-button>
+                    </el-button-group>
+                </el-form-item>
+            </el-form>
+            <el-form :inline="true" :model="searchForm" class="demo-form-inline" label-width="80px">
+                <el-form-item label="优惠券名">
+                    <el-input v-model="searchForm.name" placeholder="" clearable size="small"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="onSubmit" size="small" icon="el-icon-search">查询</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+        <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-bottom: 10px"></div>
+        <el-button type="primary" icon="el-icon-plus" size="small" @click="addCoupon" style="margin-top: 10px">添加优惠券
+        </el-button>
+        <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-top: 15px"></div>
+        <el-table
+                :data="tableData"
+                style="width: 100%;">
+            <el-table-column
+                    prop="id"
+                    width="100px"
+                    label="ID">
+            </el-table-column>
+            <el-table-column
+                    prop="name"
+                    label="名称">
+            </el-table-column>
+            <el-table-column
+                    label="类型">
+                <template slot-scope="scope">
+                    <el-tag type="success" v-if="scope.row.type == 1">满减券</el-tag>
+                    <el-tag v-if="scope.row.type == 2">折扣券</el-tag>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    label="优惠金额/折扣">
+                <template slot-scope="scope">
+                    <span v-if="scope.row.type == 1">{{ scope.row.amount }}</span>
+                    <span v-if="scope.row.type == 2">{{ scope.row.discount }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    label="领取上限">
+                <template slot-scope="scope">
+                    {{ scope.row.max_receive_num }}张/人
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="total_num"
+                    label="发放数量">
+            </el-table-column>
+            <el-table-column
+                    prop="received_num"
+                    label="已领数量">
+            </el-table-column>
+            <el-table-column
+                    width="400px"
+                    label="有效期">
+                <template slot-scope="scope">
+                    <span v-if="scope.row.validity_type == 1">{{ scope.row.start_time }} / {{ scope.row.end_time }}</span>
+                    <span v-else>领取之日后 {{ scope.row.receive_useful_day }} 天</span>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="status_txt"
+                    label="状态">
+            </el-table-column>
+            <el-table-column
+                    prop="operation"
+                    label="操作"
+                    fixed="right"
+                    width="200px">
+                <template slot-scope="scope">
+                    <el-button @click="handleView(scope.row)" type="text" size="small">查看</el-button>
+                    <el-button @click="handleLog(scope.row)" type="text" size="small">领取记录</el-button>
+                    <el-button @click="handleClose(scope.row)" type="text" size="small">作废</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+        <el-pagination
+                style="margin-top: 10px"
+                background
+                layout="->, prev, pager, next"
+                :page-size="searchForm.limit"
+                @current-change="handlePageChange"
+                :total="total">
+        </el-pagination>
+
+        <el-dialog
+                :title="title"
+                :visible.sync="dialogVisible"
+                :close-on-click-modal="false"
+                width="1000px">
+            {include file="admin/index/save"}
+        </el-dialog>
+
+        <el-dialog
+                class="goods-select"
+                title=""
+                :visible.sync="goodsDialogVisible"
+                width="70%">
+          <goods-select @selected-goods="handleSelectedGoods" @close-dialog="goodsDialogVisible=false"></goods-select>
+        </el-dialog>
+
+        <el-dialog
+                title="领取记录"
+                :visible.sync="logDialogVisible"
+                width="1000px">
+            {include file="admin/index/log"}
+        </el-dialog>
+    </el-card>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                pageLoading: true,
+                searchForm: {
+                    name: '',
+                    status: 0,
+                    limit: 15,
+                    page: 1
+                },
+                mode: 'add',
+                logDialogVisible: false,
+                goodsDialogVisible: false,
+                dialogVisible: false,
+                title: '新增优惠券',
+                total: 1,
+                tableData: [],
+                dialogCateVisible: false,
+                selectedGoods: [],
+                form: {
+                    name: '',
+                    type: 1,
+                    discount: 0,
+                    amount: 0,
+                    max_discount_amount: -1,
+                    is_limit_num: 1,
+                    total_num: 0,
+                    max_receive_num: 0,
+                    is_threshold: 1,
+                    threshold_amount: 0,
+                    validity_type: 1,
+                    datetime_range: "",
+                    join_goods: 1,
+                    receive_useful_day: 7,
+                    selectedGoods: []
+                },
+                rules: {
+                    name: [
+                        {required: true, message: '请输入优惠券名称', trigger: 'blur'}
+                    ],
+                    type: [
+                        {required: true, message: '请选择优惠券类型', trigger: 'blur'}
+                    ],
+                    amount: [
+                        {required: true, message: '请输入优惠券面额', trigger: 'blur'}
+                    ],
+                    is_limit_num: [
+                        {required: true, message: '请输入发放数量限制', trigger: 'blur'}
+                    ],
+                    max_receive_num: [
+                        {required: true, message: '请输入最多领取张数', trigger: 'blur'}
+                    ],
+                    is_threshold: [
+                        {required: true, message: '请输入使用门槛', trigger: 'blur'}
+                    ],
+                    validity_type: [
+                        {required: true, message: '请输入有效期类型', trigger: 'blur'}
+                    ],
+                    join_goods: [
+                        {required: true, message: '请输入活动商品', trigger: 'blur'}
+                    ],
+                    discount: [
+                        {required: true, message: '请输入折扣', trigger: 'blur'}
+                    ]
+                },
+                loading: false,
+                logTableData: [],
+                logTotal: 1,
+                logSearchForm: {
+                    id: 0,
+                    limit: 15,
+                    page: 1
+                },
+                nowId: 0
+            }
+        },
+        mounted() {
+            this.getList()
+            this.pageLoading = false
+        },
+        methods: {
+            checkTab(status) {
+                this.searchForm.status = status
+                this.searchForm.page = 1
+                this.getList()
+            },
+            // 获取列表
+            async getList() {
+                let res = await request.get('/addons/coupon/admin.index/index', this.searchForm)
+                this.tableData = res.data.data
+                this.total = res.data.total
+            },
+            // 查看
+            async handleView(row) {
+                this.mode = 'show'
+                this.title = '查看优惠券'
+                this.dialogVisible = true
+
+                let res = await request.get('/addons/coupon/admin.index/add', {id: row.id})
+                this.selectedGoods = res.data
+
+                this.form = row
+                this.form.datetime_range = [row.start_time, row.end_time]
+            },
+            // 作废优惠券
+            handleClose(row) {
+                this.$confirm('确定作废该优惠券？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    let res = await request.get('/addons/coupon/admin.index/close', {id: row.id})
+                    if (res.code == 0) {
+                        this.$message.success('操作成功')
+                        this.getList()
+                    } else {
+                        this.$message.error(res.msg)
+                    }
+                }).catch(() => {});
+            },
+            // 领取记录
+            async handleLog(row) {
+                this.nowId = row.id
+                this.logSearchForm.id = row.id
+                let res = await request.get('/addons/coupon/admin.index/log', this.logSearchForm)
+                this.logTableData = res.data.data
+                this.logTotal = res.data.total
+
+                this.logDialogVisible = true
+            },
+            handleLogPageChange(page) {
+                this.logSearchForm.page = page
+                this.handleLog({id: this.nowId})
+            },
+            // 搜索
+            onSubmit() {
+                this.searchForm.page = 1
+                this.getList()
+            },
+            addCoupon() {
+                this.mode = 'add'
+                this.title = '添加优惠券'
+                this.dialogVisible = true
+            },
+            // 分页
+            handlePageChange(page) {
+                this.searchForm.page = page
+                this.getList()
+            },
+            // 新增或编辑
+            optSubmit(formName) {
+                this.$refs[formName].validate(async (valid) => {
+                    if (valid) {
+                        this.loading = true
+                        let res = await request.post('/addons/coupon/admin.index/add', this.form);
+                        this.loading = false
+                        if (res.code == 0) {
+                            this.dialogVisible = false
+                            this.$message.success(res.msg)
+                            this.form = {
+                                name: '',
+                                type: 1,
+                                discount: 0,
+                                amount: 0,
+                                max_discount_amount: -1,
+                                is_limit_num: 1,
+                                total_num: 0,
+                                max_receive_num: 0,
+                                is_threshold: 1,
+                                threshold_amount: 0,
+                                validity_type: 1,
+                                datetime_range: "",
+                                join_goods: 1,
+                                receive_useful_day: 7,
+                                selectedGoods: []
+                            }
+                            //console.log('form数据', this.form)
+                            this.getList()
+                        } else {
+                            this.$message.error(res.msg)
+                        }
+                    }
+                });
+            },
+            // 选择的商品
+            handleSelectedGoods(goods) {
+                goods.forEach(item => {
+                    if (this.form.selectedGoods.indexOf(item.id) == -1) {
+                        this.selectedGoods.push(item)
+                        this.form.selectedGoods.push(item.id)
+                    }
+                })
+                this.goodsDialogVisible = false
+            },
+            // 选择商品
+            selectGoods() {
+                this.goodsDialogVisible = true
+            },
+            // 删除关联商品
+            handleDel(index) {
+                this.selectedGoods.splice(index, 1)
+            }
+        }
+    });
+</script>
+<style>
+    p {
+        padding: 0;
+        margin: 0;
+    }
+
+    .el-table__header tr,
+    .el-table__header th {
+        padding: 0;
+        height: 20px;
+        line-height: 20px;
+    }
+
+    .del-btn {
+        cursor: pointer;
+        color: #F56C6C
+    }
+
+    .add-btn {
+        cursor: pointer;
+        margin-top: 18px;
+        color: #409EFF
+    }
+    .primary {
+        color: #FFF;
+        background-color: #409EFF;
+        border-color: #409EFF;
+    }
+
+    .goods-select .el-dialog__header {
+        display: none;
+    }
+    .goods-select  .el-dialog__body {padding: 0;}
+</style>
+</body>
+</html>

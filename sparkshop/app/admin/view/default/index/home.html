@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>首页统计</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+    <script src="{__JS__}/echarts.min.js"></script>
+</head>
+<body>
+<!-- 组件导入 -->
+{include file="/components/datacard"}
+<div id="app">
+    <div class="app-loading" v-if="pageLoading">
+        <div class="app-loading__logo">
+            <img src="{__IMG__}/logo.png"/>
+        </div>
+        <div class="app-loading__loader"></div>
+        <div class="app-loading__title">{$title}</div>
+    </div>
+    <el-main v-else>
+        <el-row :gutter="15">
+            <el-col :lg="6">
+                <data-card title="销售额" :data="sellData" unit="元"></data-card>
+            </el-col>
+            <el-col :lg="6">
+                <data-card title="用户访问量" :data="pvData" unit="PV"></data-card>
+            </el-col>
+            <el-col :lg="6">
+                <data-card title="订单量" :data="orderData" unit="单"></data-card>
+            </el-col>
+            <el-col :lg="6">
+                <data-card title="新增用户" :data="userData" unit="人"></data-card>
+            </el-col>
+        </el-row>
+
+        <el-row :gutter="15" style="margin-top: 20px">
+            <el-col :lg="3">
+                <div class="function-card">
+                    <a href="{:url('user/index')}">
+                        <i class="el-icon-user-solid icon-style"></i>
+                        <p>用户管理</p>
+                    </a>
+                </div>
+            </el-col>
+            <el-col :lg="3">
+                <div class="function-card">
+                    <a href="{:url('system/store')}">
+                        <i class="el-icon-cloudy icon-style" style="color: #67C23A"></i>
+                        <p>存储引擎</p>
+                    </a>
+                </div>
+            </el-col>
+            <el-col :lg="3">
+                <div class="function-card">
+                    <a href="{:url('goods/index')}">
+                        <i class="el-icon-shopping-bag-1 icon-style"></i>
+                        <p>商品管理</p>
+                    </a>
+                </div>
+            </el-col>
+            <el-col :lg="3">
+                <div class="function-card">
+                    <a href="{:url('order/index')}">
+                        <i class="el-icon-document icon-style" style="color: #67C23A"></i>
+                        <p>订单管理</p>
+                    </a>
+                </div>
+            </el-col>
+            <el-col :lg="3">
+                <div class="function-card">
+                    <a href="{:url('system/miniapp')}">
+                        <i class="el-icon-mobile-phone icon-style" style="color: #F56C6C"></i>
+                        <p>小程序配置</p>
+                    </a>
+                </div>
+            </el-col>
+            <el-col :lg="3">
+                <div class="function-card">
+                    <a href="{:url('refund/index')}">
+                        <i class="el-icon-s-order icon-style" style="color: #E6A23C"></i>
+                        <p>售后订单</p>
+                    </a>
+                </div>
+            </el-col>
+            <el-col :lg="3">
+                <div class="function-card">
+                    <a href="{:url('system/pay')}">
+                        <i class="el-icon-money icon-style" style="color: #67C23A"></i>
+                        <p>支付设置</p>
+                    </a>
+                </div>
+            </el-col>
+            <el-col :lg="3">
+                <div class="function-card">
+                    <a href="{:url('system/sms')}">
+                        <i class="el-icon-message icon-style"></i>
+                        <p>短信设置</p>
+                    </a>
+                </div>
+            </el-col>
+        </el-row>
+
+        <el-row :gutter="15" style="margin-top:20px">
+            <el-col :lg="24">
+                <el-card shadow="never" style="width:100%">
+                    <div id="order-rank" style="width: 100%;height:300px;padding: 10px 0 10px 0"></div>
+                </el-card>
+            </el-col>
+        </el-row>
+
+        <el-row :gutter="15" style="margin-top:20px">
+            <el-col :lg="24">
+                <el-card shadow="never" style="width:100%">
+                    <div id="user-register" style="width: 100%;height:300px;padding: 10px 0 10px 0"></div>
+                </el-card>
+            </el-col>
+        </el-row>
+    </el-main>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                pageLoading: true,
+                baseIndex: '/{:config("shop.backend_index")}/',
+                option2: {},
+                option3: {},
+                sellData: {},
+                pvData: {},
+                orderData: {},
+                userData: {},
+                orderDateLine: [],
+                numberData: [],
+                amountData: [],
+                regData: []
+            }
+        },
+        mounted() {
+            this.getHomeData()
+            this.pageLoading = false
+        },
+        methods: {
+            // 销售数据
+            async getHomeData() {
+                let res = await request.get(this.baseIndex + 'index/home')
+                this.sellData = res.data.sellData
+                this.pvData = res.data.pvData
+                this.orderData = res.data.orderData
+                this.userData = res.data.userData
+
+                this.orderDateLine = res.data.orderChartsData.timeLine
+                this.numberData = res.data.orderChartsData.numData
+                this.amountData = res.data.orderChartsData.amountData
+                this.initOrderRank()
+
+                this.regData = res.data.regData.numData
+                this.initUserRegister()
+            },
+            // 订单数据
+            initOrderRank() {
+                let myChart = echarts.init(document.getElementById('order-rank'))
+
+                let option = {
+                    title:{
+                        show: true,
+                        text: "近15天订单数据",
+                    },
+                    legend: {
+                        data: ['订单金额', '订单笔数']
+                    },
+                    color: ['#F56C6C', '#66B1FF'],
+                    grid: {
+                        left: '2%',
+                        right: '2%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'line'
+                        },
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: this.orderDateLine,
+                        axisLine: {
+                            show: false
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        axisLine: {
+                            show: false
+                        },
+                        axisTick: {
+                            show: false
+                        }
+                    },
+                    series: [
+                        {
+                            name: '订单金额',
+                            tooltip: {
+                                valueFormatter: value => '订单金额：' + value + '元'
+                            },
+                            data: this.amountData,
+                            type: 'line',
+                            smooth: true,
+                            lineStyle: {
+                                normal: {
+                                    width: 3
+                                }
+                            }
+                        },
+                        {
+                            name: '订单笔数',
+                            tooltip: {
+                                valueFormatter: value => '订单笔数：' + value + '笔'
+                            },
+                            data: this.numberData,
+                            type: 'bar',
+                            barWidth: '40%',
+                            itemStyle: {
+                                opacity: 0.8
+                            }
+                        }
+                    ]
+                };
+
+                myChart.setOption(option)
+            },
+            // 用户注册
+            initUserRegister() {
+                let myChart = echarts.init(document.getElementById('user-register'))
+
+                let option = {
+                    title:{
+                        show: true,
+                        text: "近15天用户注册",
+                    },
+                    color: ['#66B1FF'],
+                    grid: {
+                        left: '2%',
+                        right: '2%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'line'
+                        },
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: this.orderDateLine,
+                        axisLine: {
+                            show: false
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        axisLine: {
+                            show: false
+                        },
+                        axisTick: {
+                            show: false
+                        }
+                    },
+                    series: [
+                        {
+                            tooltip: {
+                                valueFormatter: value => '注册数：' + value + '人'
+                            },
+                            symbol: "none",
+                            data: this.regData,
+                            type: 'line',
+                            smooth: true,
+                            lineStyle: {
+                                normal: {
+                                    width: 3
+                                }
+                            },
+                            areaStyle: { // 区域样式配置
+                                color: {
+                                    type: 'linear',
+                                    x: 0,
+                                    y: 0,
+                                    x2: 0,
+                                    y2: 1,
+                                    colorStops: [{
+                                        offset: 0,
+                                        color: '#B3D8FF' // 0% 处的颜色
+                                    }, {
+                                        offset: 1,
+                                        color: '#8CC5FF' // 100% 处的颜色
+                                    }],
+                                    global: false // 缺省为 false
+                                }
+                            }
+                        }
+                    ]
+                };
+
+                myChart.setOption(option)
+            },
+        }
+    })
+</script>
+
+<style>
+    .el-card__body, .el-main {padding: 5px 20px 10px 20px}
+    .el-card__header {padding: 20px 20px 10px 20px}
+    .function-card {height: 93px;text-align: center;background: #fff;}
+    .icon-style {font-size:28px;margin-top: 20px;color:#66B1FF}
+    a{text-decoration:none;color:#000;}
+    .function-card p {margin-top:8px;font-size:14px}
+</style>
+</body>
+</html>

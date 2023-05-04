@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="zh-CN" xml:lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{if !empty($goodsDetail['seo_title'])}{$goodsDetail['seo_title']}{else/}{$goodsDetail['name']}{/if}</title>
+    <meta name="description" {if !empty($goodsDetail['seo_desc'])}content="{$goodsDetail['seo_desc']}"{else/}content="{$goodsDetail['name']}"{/if}/>
+    <meta name="keywords" {if !empty($goodsDetail['seo_keywords'])}content="{$goodsDetail['seo_keywords']}"{else/}content="{$goodsDetail['name']}"{/if}>
+    <link rel="stylesheet" href="{__CSS__}/bootstrap.min.css">
+    <link rel="stylesheet" href="{__CSS__}/style.css">
+    <link rel="stylesheet" href="{__CSS__}/iconfont.css">
+    <link rel="stylesheet" href="{__CSS__}/goods.css">
+    <link rel="stylesheet" href="{__STATIC__}/swiper/swiper-bundle.min.css">
+    <script src="{__JS__}/notify_stand.js"> </script>
+    <script src="{__STATIC__}/swiper/swiper-bundle.min.js"> </script>
+    <script src="{__JS__}/jquery.min.js"></script>
+    <script src="{__JS__}/bootstrap.bundle.min.js"></script>
+    <script src="{__JS__}/meanmenu.min.js"></script>
+</head>
+<body>
+{include file="public/header_no_nav"}
+<div class="bar">
+    <div class="container bar-div">首页 >> {$goodsDetail['name']}</div>
+</div>
+<div class="container box-height">
+    <div class="row box-height">
+        <div class="col-md-10 box-height">
+            <div class="row" style="min-height: 530px;margin-top: 40px">
+                <div class="col-md-5">
+                    <div class="carousel">
+                        {if !empty($goodsDetail['slider_image'])}
+                        <img src="{$goodsDetail['slider_image'][0]}" width="380px" height="380px"/>
+                        {/if}
+                    </div>
+                    <div class="goods-imgs">
+                        <div class="swiper" style="height: 100%;width: 100%">
+                            <div class="swiper-wrapper">
+                                {foreach name="goodsDetail['slider_image']" item="vo"}
+                                <div class="swiper-slide"><img src="{$vo}"/></div>
+                                {/foreach}
+                            </div>
+                            <div class="swiper-button-next"></div>
+                            <div class="swiper-button-prev"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <div class="goods-title">{$goodsDetail['name']}</div>
+                    <div class="row money" style="width: 98%">
+                        <div class="col-md-8 money-wrap">
+                            原价：<del id="del-price">￥{$price['original_price']}</del>
+                            <div class="price">￥ <span id="price">{$price['price']}</span></div>
+                        </div>
+                        <div class="col-md-2 sales">
+                            <div class="num">{$goodsDetail['sales']}</div>
+                            <div>销量</div>
+                        </div>
+                    </div>
+                    <div class="row coupon-wrapper" style="display: none" id="coupon-list">
+                        <div class="row">
+                            <div class="col-md-2"><label class="label">优惠券</label></div>
+                            <div class="col-md-10">
+                                <ul class="quan">
+
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    {if !empty($goodsRule)}
+                    <div class="attribute">
+                        {foreach name="$goodsRule['rule']" item="vo" key="key"}
+                        <div class="item">
+                            <div class="item-name">
+                                <span>{$vo['title']}</span>
+                            </div>
+                            <ul class="item-items" data-idx="{$key}">
+                                {foreach name="$vo['item']" item="v" key="k"}
+                                <li data-item="{$v}" {if $key > 0}class="item-disabled"{/if}>{$v}</li>
+                                {/foreach}
+                            </ul>
+                        </div>
+                        {/foreach}
+                    </div>
+                    {/if}
+                    <div class="buy-num">
+                        <div class="item">
+                            <ul class="btn-numbox">
+                                <li><span class="number">数量</span></li>
+                                <li>
+                                    <ul class="count">
+                                        <li><span id="num-jian" class="num-jian">-</span></li>
+                                        <li><input type="number" class="input-num" id="input-num" value="1"/></li>
+                                        <li><span id="num-jia" class="num-jia">+</span></li>
+                                    </ul>
+                                </li>
+                                <li><span class="kucun">（库存:<span id="stock">{$goodsDetail['stock']}</span>）</span></li>
+                                　　　
+                            </ul>
+                        </div>
+                    </div>
+                    <div style="margin-top: 50px;position: relative;">
+                        {if $goodsDetail['type'] == 1}
+                        <button class="goods-btn cart" id="addCart">加入购物车</button>
+                        {/if}
+                        <button class="goods-btn" style="margin-left: 10px" id="buyNow">立即购买</button>
+                    </div>
+                </div>
+            </div>
+            <div class="goods-detail" style="margin-bottom: 80px;">
+                <div class="content-bar">
+                    <div class="bar-active"> 产品详情</div>
+                    <div>产品参数</div>
+                    <div>累计评价({:array_sum($commentsMap)})</div>
+                </div>
+                <div class="good-content tab-content" id="tab-0">
+                    {$goodsContent['content']|raw}
+                </div>
+                <div class="tab-content" id="tab-1" style="display: none">
+                    <div id="attributes" class="attributes">
+                        <!-- attributes div start -->
+                        <ul class="attributes-list">
+                            {foreach name="goodsAttr" item="vo"}
+                            <li title="{$vo['name']}">{$vo['name']}:&nbsp;{$vo['value']}</li>
+                            {/foreach}
+                        </ul>
+                    </div>
+                </div>
+                <div class="tab-content comment" id="tab-2" style="margin-bottom: 100px;display: none">
+                    <div class="comment-info J-comment-info">
+                        <div class="comment-percent">
+                            <strong class="percent-tit">好评度</strong>
+                            <div class="percent-con">{$goodsPercent}<span>%</span></div>
+                        </div>
+                    </div>
+                    <div class="comments-list ETab">
+                        <ul class="tab-main comments">
+                            <li class="current" data-type="0">全部<span>({:array_sum($commentsMap)})</span></li>
+                            <li data-type="1">好评<span>({$commentsMap['1']})</span></li>
+                            <li data-type="2">中评<span>({$commentsMap['2']})</span></li>
+                            <li data-type="3">差评<span>({$commentsMap['3']})</span></li>
+                        </ul>
+                        <div style="margin-top: 30px"></div>
+                        <div id="user-comments-div">
+
+                        </div>
+                        <p class="more-comment" onclick="getMore(this)" data-page="1" id="moreComment">加载更多</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 box-right-height" style="margin-top: 40px;border: 1px solid #efefef">
+            <div class="title"><span>热销推荐</span></div>
+            <div class="recomment-list">
+                {foreach name="hotSale" item="vo"}
+                <div class="item">
+                    <div class="image">
+                        <img src="{$vo['img']}">
+                    </div>
+                    <div class="text">
+                        <div class="name"><a href="/index/goods/{$vo['id']}" class="hot-txt">{$vo['name']}</a></div>
+                        <div class="acea-row row-between-wrapper">
+                            <div class="rec-money">
+                                ￥<span>{$vo['price']|number_format=###}</span>
+                            </div>
+                            <div class="rec-sales">销量 {$vo['sales']}</div>
+                        </div>
+                    </div>
+                </div>
+                {/foreach}
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 底部 -->
+{include file="public/footer"}
+<div style="display: none">
+    <form method="post" action="/index/order">
+        <input type="hidden" name="order_data" id="order_data"/>
+        <button type="submit" id="buy_goods"></button>
+    </form>
+</div>
+<div class="go-top">
+    <i class="iconfont icon-yooxi"></i>
+    <i class="iconfont icon-yooxi"></i>
+</div>
+
+<script id="comments" type="text/html">
+    {{#  layui.each(d.data, function(index, item){ }}
+    <div class="comment-item">
+        <div class="user-column">
+            <div class="user-info">
+                <img src="{{ item.user_avatar }}" width="25" height="25" alt="{{ item.user_name }}" class="avatar">
+                {{ item.user_name }}
+            </div>
+            <div class="user-level">
+                <span style="color: rgb(136, 136, 136);"></span>
+            </div>
+        </div>
+        <div class="comment-column">
+            <div class="comment-star star{{ item.desc_match }}"></div>
+            <p class="comment-con">{{ item.content }}</p>
+            <div class="pic-list">
+                {{# layui.each(item.pictures, function(key, val){ }}
+                <a onclick="showBigPic('{{ item.pictures }}')">
+                    <img src="{{ val }}" width="48" height="48" alt="{{ val }}">
+                </a>
+                {{#  }); }}
+            </div>
+            <div class="comment-message">
+                <div class="order-info">
+                    {{# if (item.sku) {  }}<span>{{ item.sku }}</span>{{# } }} <span>{{ item.create_time }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{#  }); }}
+</script>
+
+<script src="{__JS__}/custom.js"></script>
+<script src="/static/js/layui/layui.js"></script>
+<script>
+    var goods_id = {$goodsId};
+    var goodsRuleDetail = {$selectRuleMap|raw};
+    var ruleJson = {$ruleJson|raw};
+    let totalItem = ruleJson.length;
+    let selectedMap = [];
+    let goodsRuleUrl = '/index/goodsRule';
+    let stock = {$goodsDetail['stock']};
+    let orderType = '{$type}';
+</script>
+<script src="{__JS__}/goods.js"></script>
+</body>
+</html>

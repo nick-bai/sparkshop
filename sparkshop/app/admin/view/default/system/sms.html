@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>短信配置</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+</head>
+<body>
+<div id="app">
+    <div class="app-loading" v-if="pageLoading">
+        <div class="app-loading__logo">
+            <img src="{__IMG__}/logo.png"/>
+        </div>
+        <div class="app-loading__loader"></div>
+        <div class="app-loading__title">{$title}</div>
+    </div>
+    <el-card class="box-card" v-else>
+        <div slot="header" class="clearfix">
+            <span>短信配置</span>
+        </div>
+        <el-tabs v-model="activeName">
+            <el-tab-pane label="短信配置" name="first">
+                <el-form ref="form" :model="form" label-width="120px">
+                    <el-form-item label="短信KeyID">
+                        <el-input v-model="form.access_key_id" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="短信KeySecret">
+                        <el-input v-model="form.access_key_secret" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="短信签名">
+                        <el-input v-model="form.sign_name" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="save">立即保存</el-button>
+                    </el-form-item>
+                </el-form>
+                <div style="margin-top: 30px;font-size: 13px">* 系统默认使用的短信是 "阿里云短信",
+                    <a href="https://www.aliyun.com/acts/alicomcloud/new-discount" target="_blank" style="color: red"> 点击此处去购买。 </a></div>
+            </el-tab-pane>
+            <el-tab-pane label="模板设置" name="second">
+                <el-form ref="form" :model="form" label-width="150px">
+                    <el-form-item label="通用模板ID">
+                        <el-input v-model="form.com_sms_code" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="用户登录模板ID">
+                        <el-input v-model="form.login_sms_code" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="用户注册模板ID">
+                        <el-input v-model="form.reg_sms_code" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="密码找回模板ID">
+                        <el-input v-model="form.forget_sms_code" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="手机号码绑定模板ID">
+                        <el-input v-model="form.bind_sms_code" style="width: 500px"></el-input>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="save">立即保存</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-tab-pane>
+        </el-tabs>
+    </el-card>
+</div>
+
+<script>
+
+    let form = {$info|raw};
+
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                pageLoading: true,
+                form: form,
+                baseIndex: '/{:config("shop.backend_index")}/',
+                activeName: 'first'
+            }
+        },
+        mounted() {
+            this.pageLoading = false
+        },
+        methods: {
+            async save() {
+                let res = await request.post(this.baseIndex + 'system/sms', this.form)
+                if (res.code == 0) {
+                    this.$message.success('保存成功')
+                } else {
+                    this.$message.error(res.msg)
+                }
+            }
+        }
+    })
+</script>
+<style>
+    a {text-decoration:none;}
+</style>
+</body>
+</html>

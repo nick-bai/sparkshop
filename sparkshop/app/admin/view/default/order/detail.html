@@ -1,0 +1,35 @@
+<el-descriptions title="订单信息">
+  <el-descriptions-item label="订单ID">{{ orderDetail.info.order_no }}</el-descriptions-item>
+  <el-descriptions-item label="订单状态">
+    <el-tag size="small">{{ orderDetail.status[orderDetail.info.status] }}</el-tag>
+  </el-descriptions-item>
+  <el-descriptions-item label="购买数量">{{ orderDetail.info.total_num }}</el-descriptions-item>
+  <el-descriptions-item label="商品总价">{{ orderDetail.info.order_price }}</el-descriptions-item>
+  <el-descriptions-item label="实际支付">
+    <el-tag size="small" type="danger">{{ orderDetail.info.pay_price }}</el-tag>
+  </el-descriptions-item>
+  <el-descriptions-item label="支付邮费">{{ orderDetail.info.pay_postage }}</el-descriptions-item>
+  <el-descriptions-item label="退款金额">-{{ orderDetail.info.refunded_price }}</el-descriptions-item>
+  <el-descriptions-item label="会员优惠">-{{ orderDetail.info.vip_discount }}</el-descriptions-item>
+  <el-descriptions-item label="优惠券金额">-{{ orderDetail.info.coupon_amount }}</el-descriptions-item>
+  <el-descriptions-item label="下单时间">{{ orderDetail.info.create_time }}</el-descriptions-item>
+  <el-descriptions-item label="发货时间">{{ orderDetail.info.delivery_time }}</el-descriptions-item>
+  <el-descriptions-item label="支付时间">{{ orderDetail.info.pay_time }}</el-descriptions-item>
+  <el-descriptions-item label="支付方式">
+    <el-tag size="small">{{ orderDetail.payWay[orderDetail.info.pay_way] }}</el-tag>
+  </el-descriptions-item>
+  <el-descriptions-item label="三方单号">{{ orderDetail.info.third_code }}</el-descriptions-item>
+  <el-descriptions-item label="三方信息"><span style="cursor: pointer;color:#409EFF;" @click="thirdDetail(orderDetail.info)">查看</span></el-descriptions-item>
+</el-descriptions>
+<el-descriptions title="收件信息">
+  <el-descriptions-item label="用户昵称">{{ orderDetail.info.user.nickname }}</el-descriptions-item>
+  <el-descriptions-item label="收货人">{{ orderDetail.info.address.user_name }}</el-descriptions-item>
+  <el-descriptions-item label="联系电话">{{ orderDetail.info.address.phone}}</el-descriptions-item>
+  <el-descriptions-item label="收货地址">{{ orderDetail.info.address.province }}{{ orderDetail.info.address.city }}{{ orderDetail.info.address.county }}{{ orderDetail.info.address.detail }}</el-descriptions-item>
+</el-descriptions>
+<el-descriptions title="物流信息">
+  <el-descriptions-item label="快递公司">{{ orderDetail.info.delivery_name }}</el-descriptions-item>
+  <el-descriptions-item label="单号">{{ orderDetail.info.delivery_no }}
+    <el-tag @click="showExpress" style="cursor: pointer;margin-left: 10px;" size="small">物流详情</el-tag>
+  </el-descriptions-item>
+</el-descriptions>

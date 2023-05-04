@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN" xml:lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>{$title}</title>
+  <link rel="stylesheet" href="/static/layui/css/layui.css">
+  <link rel="stylesheet" href="{__CSS__}/bootstrap.min.css">
+  <link rel="stylesheet" href="{__CSS__}/style.css">
+  <link rel="stylesheet" href="{__CSS__}/iconfont.css">
+  <script src="{__JS__}/jquery.min.js"></script>
+  <script src="{__JS__}/bootstrap.bundle.min.js"></script>
+  <script src="{__JS__}/meanmenu.min.js"></script>
+  <style>
+    .footer-area{background: #fff}
+  </style>
+</head>
+<body style="background: #f9f9f9;">
+{include file="public/header_no_nav"}
+<div class="container box-height" style="background: #fff;margin-top: 20px;color:#333;min-height: calc(100vh - 560px);margin-bottom: 30px">
+  {$info['content']|raw}
+</div>
+<!-- 底部 -->
+{include file="public/footer"}
+
+<div class="go-top">
+  <i class="iconfont icon-yooxi"></i>
+  <i class="iconfont icon-yooxi"></i>
+</div>
+<script src="{__JS__}/custom.js"></script>
+</body>
+</html>

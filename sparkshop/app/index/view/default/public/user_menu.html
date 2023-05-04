@@ -1,0 +1,53 @@
+<div class="menu">
+    <div class="user-address-menu">
+        <div class="menu-box">
+            <h3 class="title">我的订单</h3>
+            <ul class="list">
+                <li class="active">
+                    <a href="/user">我的订单</a>
+                </li>
+                <li>
+                    <a href="/afterOrder">订单售后</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="menu-box">
+            <h3 class="title">个人中心</h3>
+            <ul class="list">
+                <li>
+                    <a href="/user/coupon">优惠券</a>
+                </li>
+                <li>
+                    <a href="/user/score">积分</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="menu-box">
+            <h3 class="title">账户管理</h3>
+            <ul class="list">
+                <li>
+                    <a href="/user/personal">个人资料</a>
+                </li>
+                <li>
+                    <a href="/user/address">我的地址</a>
+                </li>
+                <!--<li>
+                    <a href="JavaScript:;">安全设置</a>
+                </li>-->
+            </ul>
+        </div>
+    </div>
+</div>
+<script>
+    $(function () {
+
+        $('.menu-box ul li').removeClass('active');
+        $('.menu-box ul li').find('a').each(function () {
+            if ($(this).attr('href') == window.location.pathname) {
+                $(this).parent().addClass('active');
+            }
+        })
+    })
+</script>

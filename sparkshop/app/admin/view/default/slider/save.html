@@ -1,0 +1,38 @@
+<el-form :model="form" :rules="rules" ref="ruleForm" label-width="80px">
+  <el-form-item label="轮播描述" prop="name">
+    <el-input v-model="form.name"></el-input>
+  </el-form-item>
+  <el-form-item label="图片" prop="pic_url">
+    <ul class="img-list">
+      <li v-if="form.pic_url">
+        <img :src="form.pic_url" width="58px" height="58px" alt="图片">
+        <div class="img-tools">
+          <i class="el-icon-delete" style="font-size: 14px;color: #fff" @click="removeImg()"></i>
+        </div>
+      </li>
+      <li>
+        <div class="addImg" @click="showImage">
+          <i class="el-icon-plus"></i>
+        </div>
+      </li>
+    </ul>
+  </el-form-item>
+  <el-form-item label="链接类型" prop="type">
+    <el-radio v-model="form.type" label="1">指向商品</el-radio>
+    <el-radio v-model="form.type" label="2">自定义</el-radio>
+  </el-form-item>
+  <el-form-item label="选择商品" v-if="form.type == 1">
+    <el-button type="primary" size="small" icon="el-icon-shopping-cart-2" @click="selectGoods">选择商品</el-button>
+  </el-form-item>
+  <el-form-item label="链接地址" prop="target_url">
+    <el-input v-model="form.target_url" v-if="form.type == 1" disabled></el-input>
+    <el-input v-model="form.target_url" v-else></el-input>
+  </el-form-item>
+  <el-form-item label="排序值">
+    <el-input v-model="form.sort" type="number"></el-input>
+  </el-form-item>
+</el-form>
+<div slot="footer" class="dialog-footer">
+  <el-button @click="dialogVisible = false" size="small">取 消</el-button>
+  <el-button type="primary" @click="optSubmit('ruleForm')" size="small" :loading="loading">确 定</el-button>
+</div>

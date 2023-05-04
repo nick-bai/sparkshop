@@ -1,0 +1,186 @@
+<el-form label-position="left" label-width="80px" ref="form" :model="form" :rules="rules">
+    <el-form-item label="商品规格" prop="spec">
+        <el-radio v-model="form.spec" label="1">单规格</el-radio>
+        <el-radio v-model="form.spec" label="2">多规格</el-radio>
+    </el-form-item>
+    <div v-if="form.spec == 1">
+        <el-form-item label="售价">
+            <el-input type="number" v-model="form.price" style="width:500px"></el-input> 元
+        </el-form-item>
+        <el-form-item label="划线价">
+            <el-input type="number" v-model="form.original_price" style="width:500px"></el-input> 元
+        </el-form-item>
+        <el-form-item label="成本价">
+            <el-input type="number" v-model="form.cost_price" style="width:500px"></el-input> 元
+        </el-form-item>
+        <el-form-item label="库存">
+            <el-input type="number" v-model="form.stock" style="width:500px"></el-input>
+        </el-form-item>
+        <el-form-item label="商品编号">
+            <el-input type="number" v-model="form.spu" style="width:500px"></el-input>
+        </el-form-item>
+        <el-form-item label="重量">
+            <el-input type="number" v-model="form.weight" style="width:500px"></el-input> KG
+        </el-form-item>
+        <el-form-item label="体积">
+            <el-input type="number" v-model="form.volume" style="width:500px"></el-input> m³
+        </el-form-item>
+    </div>
+    <div style="margin-bottom: 20px" v-else>
+        <el-form-item label="选择规格">
+            <el-select v-model="selectRule" placeholder="请选择" style="width: 300px" @change="handleSelectRule" size="small">
+                <el-option
+                        v-for="item in rule"
+                        :key="item.id"
+                        :label="item.name"
+                        :value="item.id">
+                </el-option>
+            </el-select>
+            <!--<el-button icon="el-icon-plus" type="primary" size="small">添加新规格</el-button>-->
+        </el-form-item>
+        <div class="table-box">
+            <div style="float: right;margin-bottom: 10px">
+                <el-button type="primary" icon="el-icon-plus" size="small" @click="addRule">新的规格</el-button>
+                <el-button type="primary" icon="el-icon-s-opportunity" size="small" @click="makeRule">生成属性</el-button>
+            </div>
+            <el-table
+                    :data="preItem"
+                    border
+                    style="width: 100%">
+                <el-table-column
+                        label="规格名"
+                        width="200">
+                    <template slot-scope="scope">
+                        <el-input placeholder="规格名" style="width: 150px" v-model="scope.row.title"></el-input>
+                        <i class="el-icon-delete del-btn" @click="delTitle(scope.$index)"></i>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                        label="规格值">
+                    <template slot-scope="scope">
+                        <div style="width: 180px;float: left;margin-top: 5px;" v-for="(vo,index) in scope.row.item" :key="index">
+                            <el-input placeholder="规格值" style="width: 150px" v-model="scope.row.item[index]"></el-input>
+                            <i class="el-icon-delete del-btn" @click="delItem(scope.$index, index)"></i>
+                        </div>
+                        <i class="el-icon-plus add-btn" @click="addNewItem(scope.$index)">添加</i>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <div v-if="final.length > 0">
+                <el-form-item label="批量设置" style="margin-top: 10px">
+                    <el-button-group>
+                        <el-button type="primary" size="mini" @click="batchDialogVisible = true">图片</el-button>
+                        <el-button type="primary" size="mini" @click="setBatch('price', '售价')">售价</el-button>
+                        <el-button type="primary" size="mini" @click="setBatch('cost_price', '成本价')">成本价</el-button>
+                        <el-button type="primary" size="mini" @click="setBatch('original_price', '原价')">原价</el-button>
+                        <el-button type="primary" size="mini" @click="setBatch('stock', '库存')">库存</el-button>
+                        <el-button type="primary" size="mini" @click="setBatch('spu', '商品编号')">商品编号</el-button>
+                        <el-button type="primary" size="mini" @click="setBatch('weight', '重量')">重量</el-button>
+                        <el-button type="primary" size="mini" @click="setBatch('volume', '体积')">体积</el-button>
+                    </el-button-group>
+                </el-form-item>
+                <el-table
+                        :data="final"
+                        border
+                        style="width: 100%">
+                    <el-table-column v-for="item,index in tableHead" :label="item.label" width="150" :key="index">
+                        <template slot-scope="scope">
+                            {{ scope.row.sku[item.property] }}
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            label="图片"
+                            width="100">
+                        <template slot-scope="scope">
+                            <div class="up-item-img" v-if="scope.row.image == ''" @click="setOneImg(scope.$index)"><i class="el-icon-plus"></i></div>
+                            <img style="width: 50px; height: 45px" :src="scope.row.image" v-if="scope.row.image">
+                            <div class="img-tools" v-if="scope.row.image" @click="rmImg(scope.$index)"><i class="el-icon-delete" style="font-size: 14px; color: rgb(255, 255, 255);"></i></div>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            label="售价"
+                            width="150">
+                        <template slot-scope="scope">
+                            <el-input v-model="scope.row.price" type="number"></el-input>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            label="成本价"
+                            width="150">
+                        <template slot-scope="scope">
+                            <el-input v-model="scope.row.cost_price" type="number"></el-input>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            label="原价"
+                            width="150">
+                        <template slot-scope="scope">
+                            <el-input v-model="scope.row.original_price" type="number"></el-input>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            label="库存"
+                            width="150">
+                        <template slot-scope="scope">
+                            <el-input v-model="scope.row.stock" type="number"></el-input>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            label="商品编号"
+                            width="150">
+                        <template slot-scope="scope">
+                            <el-input v-model="scope.row.spu"></el-input>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            label="重量(KG)"
+                            width="150">
+                        <template slot-scope="scope">
+                            <el-input v-model="scope.row.weight" type="number"></el-input>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            label="体积(m³)"
+                            width="150">
+                        <template slot-scope="scope">
+                            <el-input v-model="scope.row.volume" type="number"></el-input>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            label="操作"
+                            fixed="right"
+                            width="150">
+                        <template slot-scope="scope">
+                            <el-button @click="handleDel(scope.$index)" type="text" size="small">删除</el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </div>
+        </div>
+    </div>
+    <el-alert
+            style="width: 600px"
+            title="选择规格之后，点击 '生成属性' 则可以自动生成商品的属性列表。"
+            type="warning"
+            :closable="false">
+    </el-alert>
+    <el-form-item style="margin-top: 10px">
+        <el-button @click="pre" size="small">上一步</el-button>
+        <el-button type="primary" @click="ruleNext" size="small">下一步</el-button>
+        <el-button type="primary" @click="saveGoods" size="small" v-if="form.id > 0">保存</el-button>
+    </el-form-item>
+
+    <el-dialog :title="`设置${batchTitle}`" :visible.sync="batchVisible" width="500px">
+        <el-form :model="batchForm" label-width="80px">
+            <el-form-item :label="batchTitle">
+                <el-input v-model="batchForm.field" autocomplete="off" v-if="batchTitle == '商品编号'"></el-input>
+                <el-input v-model="batchForm.field" autocomplete="off" type="number" v-else></el-input>
+            </el-form-item>
+
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="batchVisible = false" size="small">取 消</el-button>
+            <el-button type="primary" @click="batchFormSubmit" size="small">确 定</el-button>
+        </div>
+    </el-dialog>
+</el-form>

@@ -1,0 +1,44 @@
+<el-descriptions title="退款信息">
+  <el-descriptions-item label="申请人">{{ orderDetail.refund.user_name }}</el-descriptions-item>
+  <el-descriptions-item label="退款状态">
+    <el-tag size="small">{{ orderDetail.refund.status_txt }}</el-tag>
+  </el-descriptions-item>
+  <el-descriptions-item label="退款方式">
+    <el-tag size="small" v-if="orderDetail.refund.refund_type == 1">仅退款</el-tag>
+    <el-tag size="small" v-else>退货退款</el-tag>
+  </el-descriptions-item>
+  <el-descriptions-item label="退款步骤">
+    <el-tag size="small">{{ orderDetail.refund.step_txt }}</el-tag>
+  </el-descriptions-item>
+  <el-descriptions-item label="申请退款金额">
+    <el-tag type="danger" size="small">{{ orderDetail.refund.refund_price }}</el-tag>
+  </el-descriptions-item>
+  <el-descriptions-item label="申请退款数量">{{ orderDetail.refund.refund_num }}</el-descriptions-item>
+  <el-descriptions-item label="用户说明">{{ orderDetail.refund.remark }}</el-descriptions-item>
+  <el-descriptions-item label="退款理由">{{ orderDetail.refund.apply_refund_reason }}</el-descriptions-item>
+  <el-descriptions-item label="不退款理由">{{ orderDetail.refund.refund_reason }}</el-descriptions-item>
+  <!--<el-descriptions-item label="退款电话">{{ orderDetail.refund.refund_phone }}</el-descriptions-item>-->
+  <el-descriptions-item label="退货单号">{{ orderDetail.refund.refund_express }}</el-descriptions-item>
+  <el-descriptions-item label="退货快递">{{ orderDetail.refund.refund_express_name }}</el-descriptions-item>
+  <el-descriptions-item label="退款凭证">
+    <el-image :src="item" style="width: 80px;height: 80px" v-for="(item, index) in orderDetail.refund.refund_img" :key="index" :preview-src-list="[item]"></el-image>
+  </el-descriptions-item>
+</el-descriptions>
+<el-descriptions title="订单信息">
+  <el-descriptions-item label="订单ID">{{ orderDetail.info.order_no }}</el-descriptions-item>
+  <el-descriptions-item label="订单状态">
+    <el-tag size="small">{{ orderDetail.status[orderDetail.info.status] }}</el-tag>
+  </el-descriptions-item>
+  <el-descriptions-item label="购买数量">{{ orderDetail.info.total_num }}</el-descriptions-item>
+  <el-descriptions-item label="实际支付">{{ orderDetail.info.pay_price }}</el-descriptions-item>
+  <el-descriptions-item label="支付邮费">{{ orderDetail.info.pay_postage }}</el-descriptions-item>
+  <el-descriptions-item label="退款金额">
+    <el-tag type="danger" size="small">-{{ orderDetail.info.refunded_price }}</el-tag>
+  </el-descriptions-item>
+  <el-descriptions-item label="会员优惠">-{{ orderDetail.info.vip_discount }}</el-descriptions-item>
+  <el-descriptions-item label="优惠券金额">-{{ orderDetail.info.coupon_amount }}</el-descriptions-item>
+  <el-descriptions-item label="下单时间">{{ orderDetail.info.create_time }}</el-descriptions-item>
+  <el-descriptions-item label="支付时间">{{ orderDetail.info.pay_time }}</el-descriptions-item>
+  <el-descriptions-item label="发货时间">{{ orderDetail.info.delivery_time }}</el-descriptions-item>
+  <el-descriptions-item label="支付方式">{{ orderDetail.payWay[orderDetail.info.pay_way] }}</el-descriptions-item>
+</el-descriptions>

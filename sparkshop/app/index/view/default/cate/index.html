@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="zh-CN" xml:lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>商品分类</title>
+    <link rel="stylesheet" href="/static/js/layui/css/layui.css">
+    <link rel="stylesheet" href="{__CSS__}/bootstrap.min.css">
+    <link rel="stylesheet" href="{__CSS__}/style.css">
+    <link rel="stylesheet" href="{__CSS__}/iconfont.css">
+    <link rel="stylesheet" href="{__CSS__}/goods_cate.css">
+    <script src="{__JS__}/jquery.min.js"></script>
+    <script src="{__JS__}/bootstrap.bundle.min.js"></script>
+    <script src="{__JS__}/meanmenu.min.js"></script>
+</head>
+<body style="background: #f9f9f9;">
+{include file="public/header_no_nav"}
+<div class="container box-height goods_cate">
+    <div style="margin-top:10px">
+        <a href="/">首页</a>
+        {foreach name="crumbs" item="vo" key="key"}
+        > <a class="cate-crumbs" href="/index/cate/{$vo['id']}/{$key + 1}"> {$vo['name']}</a>
+        {/foreach}
+    </div>
+    <div class="goods_cate_detail" style="margin-top: 10px">
+        <div class="sub_cate">
+            <div class="sub_cate_title">
+                分类
+            </div>
+            <div class="sub_cate_content">
+                {foreach name="cate_list" item="vo"}
+                <div class="goods_cate_item">
+                    <a href="/index/cate/{$vo['id']}/{$vo['level']}" class="{if $vo['id'] eq $cate_id}item_active{/if}">{$vo['name']}</a>
+                </div>
+                {/foreach}
+            </div>
+        </div>
+        <div class="cate_sort">
+            <div class="sub_cate_title">
+                排序
+            </div>
+            <div class="sort_menu">
+                <div class="goods_cate_item item_active" style="margin-top: 5px">默认</div>
+                <div class="goods_cate_item {if $price_type == 'desc'}sort-active{/if}" style="margin-top: 5px" onclick="sortPrice(this)" data-type="{$price_type}">
+                    价格 <i class="iconfont icon-down" style="font-size: 14px;color:#e2e2e2"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="goods_cate_content row">
+        {if !empty($goods_list['data'])}
+        {foreach name="goods_list['data']" item="vo"}
+        <div class="item">
+            <div class="pictrue">
+                <img src="{$vo['slider_image']}">
+            </div>
+            <div class="money">
+                <div>
+                    <span class="font-color">¥{$vo['price']}</span>
+                    <!--<span class="y_money">¥{$vo['price']}</span>-->
+                </div>
+            </div>
+            <div class="name line2">
+                <a href="/index/goods/{$vo['id']}" style="color:#282828">{$vo['name']}</a>
+            </div>
+            <div class="bottom">
+                <div class="seller_num">{$vo['sales']}人付款</div>
+                <div class="score">{$vo['collects']}收藏</div>
+            </div>
+        </div>
+        {/foreach}
+        {else/}
+        <div style="font-size: 14px;margin-top: 200px;margin-left: 40%;color:#555555;width: 131px">
+            <img src="{__IMG__}/search.png"/>
+            <p style="margin-top: 10px;margin-left: 10px">没有相关数据</p>
+        </div>
+        {/if}
+    </div>
+    {if (!empty($goods_list['data']) && ($goods_list['current_page'] neq $goods_list['last_page']))}
+    <div class="more-goods"><a href="{$getMoreUrl}" class="get-more">加载更多</a></div>
+    {/if}
+</div>
+<!-- 底部 -->
+{include file="public/footer"}
+
+<div class="go-top">
+    <i class="iconfont icon-yooxi"></i>
+    <i class="iconfont icon-yooxi"></i>
+</div>
+<script src="{__JS__}/custom.js"></script>
+<script>
+    let currentPage = {$goods_list['current_page']};
+    function sortPrice(obj) {
+        let type = $(obj).attr('data-type');
+        let url = '{$getMoreUrl|raw}';
+        if (type == 'asc') {
+            url = url.replace('p_s=asc', 'p_s=desc');
+        } else {
+            url = url.replace('p_s=desc', 'p_s=asc');
+        }
+
+        url = url.replace('page=' + (parseInt(currentPage) + 1), 'page=1')
+        window.location.href = url;
+    }
+</script>
+</body>
+</html>

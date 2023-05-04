@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>物流公司</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+</head>
+<body>
+<div id="app">
+    <div class="app-loading" v-if="pageLoading">
+        <div class="app-loading__logo">
+            <img src="{__IMG__}/logo.png"/>
+        </div>
+        <div class="app-loading__loader"></div>
+        <div class="app-loading__title">{$title}</div>
+    </div>
+    <el-card class="box-card" v-else>
+        <div slot="header" class="clearfix">
+            <span>物流公司</span>
+        </div>
+        <div class="search-box">
+            <el-form :inline="true" :model="searchForm" class="demo-form-inline">
+                <el-form-item label="公司名称">
+                    <el-input v-model="searchForm.name" placeholder="" clearable size="small"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="onSubmit" size="small" icon="el-icon-search">查询</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+        <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-bottom: 10px"></div>
+        <el-button type="primary" icon="el-icon-plus" size="small" @click="addExpress" style="margin-top: 10px">添加物流公司
+        </el-button>
+        <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-top: 10px"></div>
+        <el-table
+                :data="tableData"
+                style="width: 100%;">
+            <el-table-column
+                    type=""
+                    prop="id"
+                    label="ID">
+            </el-table-column>
+            <el-table-column
+                    prop="name"
+                    label="物流公司名称">
+            </el-table-column>
+            <el-table-column
+                    prop="code"
+                    label="物流公司编码">
+            </el-table-column>
+            <el-table-column
+                    label="状态">
+                <template slot-scope="scope">
+                    <el-tag type="success" v-if="scope.row.status == 1">启用</el-tag>
+                    <el-tag type="danger" v-if="scope.row.status == 2">禁用</el-tag>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="create_time"
+                    label="创建时间">
+            </el-table-column>
+            <el-table-column
+                    prop="operation"
+                    label="操作">
+                <template slot-scope="scope">
+                    <el-button @click="handleEdit(scope.row)" type="text" size="small">编辑</el-button>
+                    <el-button @click="handleDel(scope.row)" type="text" size="small">删除</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+        <el-pagination
+                style="margin-top: 10px"
+                background
+                layout="->, prev, pager, next"
+                :page-size="searchForm.limit"
+                @current-change="handlePageChange"
+                :total="total">
+        </el-pagination>
+
+        <el-dialog :title="title" :visible.sync="dialogVisible" width="600px" destroy-on-close>
+            <el-form :model="form" :rules="rules" ref="ruleForm" label-width="120px">
+                <el-form-item label="物流公司名称" prop="name">
+                    <el-input v-model="form.name"></el-input>
+                </el-form-item>
+                <el-form-item label="物流公司编码" prop="code">
+                    <el-input v-model="form.code"></el-input>
+                </el-form-item>
+                <el-form-item label="状态">
+                    <el-radio v-model="form.status" :label="1">启用</el-radio>
+                    <el-radio v-model="form.status" :label="2">禁用</el-radio>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogVisible = false" size="small">取 消</el-button>
+                <el-button type="primary" @click="optSubmit('ruleForm')" size="small" :loading="loading">确 定</el-button>
+            </div>
+        </el-dialog>
+    </el-card>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                pageLoading: true,
+                searchForm: {
+                    name: '',
+                    limit: 15,
+                    page: 1
+                },
+                dialogVisible: false,
+                title: '新增物流公司',
+                total: 1,
+                tableData: [],
+                baseIndex: '/{:config("shop.backend_index")}/',
+                dialogCateVisible: false,
+                form: {
+                    id: 0,
+                    name: '',
+                    code: '',
+                    status: 1
+                },
+                rules: {
+                    name: [
+                        {required: true, message: '请输入物流公司名称', trigger: 'blur'}
+                    ],
+                    code: [
+                        {required: true, message: '请输入物流公司编码', trigger: 'blur'}
+                    ],
+                },
+                loading: false
+            }
+        },
+        mounted() {
+            this.getList()
+            this.pageLoading = false
+        },
+        methods: {
+            // 获取列表
+            async getList() {
+                let res = await request.get(this.baseIndex + 'express/index', this.searchForm)
+                this.tableData = res.data.data
+                this.total = res.data.total
+            },
+            // 初始化表单
+            initForm() {
+                this.form = {
+                    id: 0,
+                    name: '',
+                    code: '',
+                    status: 1
+                }
+            },
+            // 搜索
+            onSubmit() {
+                this.getList()
+            },
+            addExpress() {
+                this.title = '添加物流公司'
+                this.initForm()
+                this.dialogVisible = true
+            },
+            // 编辑参数
+            handleEdit(item) {
+                this.title = '编辑物流公司'
+                this.dialogVisible = true
+
+                this.form.id = item.id
+                this.form.name = item.name
+                this.form.code = item.code
+                this.form.status = item.status
+            },
+            // 删除参数
+            handleDel(item) {
+                this.$confirm('此操作将永久删除该物流公司 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    let res = await request.get(this.baseIndex + 'express/del', {id: item.id})
+                    if (res.code == 0) {
+                        this.$message.success(res.msg)
+                        this.getList()
+                    } else {
+                        this.$message.error(res.msg)
+                    }
+                }).catch(() => {
+                });
+            },
+            // 分页
+            handlePageChange(page) {
+                this.searchForm.page = page
+                this.getList()
+            },
+            // 新增或编辑
+            optSubmit(formName) {
+                this.$refs[formName].validate(async (valid) => {
+                    if (valid) {
+                        this.loading = true
+                        let res;
+                        if (this.form.id) {
+                            res = await request.post(this.baseIndex + 'express/edit', this.form)
+                        } else {
+                            res = await request.post(this.baseIndex + 'express/add', this.form)
+                        }
+                        this.loading = false
+                        if (res.code == 0) {
+                            this.dialogVisible = false
+                            this.$message.success(res.msg)
+                            this.getList()
+                        } else {
+                            this.$message.error(res.msg)
+                        }
+                    }
+                });
+            }
+        }
+    });
+</script>
+<style>
+    p {
+        padding: 0;
+        margin: 0;
+    }
+
+    .el-table__header tr,
+    .el-table__header th {
+        padding: 0;
+        height: 20px;
+        line-height: 20px;
+    }
+
+    .del-btn {
+        cursor: pointer;
+        color: #F56C6C
+    }
+
+    .add-btn {
+        cursor: pointer;
+        margin-top: 18px;
+        color: #409EFF
+    }
+</style>
+</body>
+</html>

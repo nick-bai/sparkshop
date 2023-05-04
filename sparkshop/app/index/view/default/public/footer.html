@@ -1,0 +1,69 @@
+<div class="footer-area pt-54 pb-30">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3 col-sm-6">
+                <div class="single-footer-widget">
+                    <h3>关于我们</h3>
+                    <ul class="info-list">
+                        <li>
+                            <i class="ri-map-pin-line"></i>
+                            地址：{$conf['address']}
+                        </li>
+                        <li>
+                            <i class="ri-phone-line"></i>
+                            <a href="tel:+1-(514)-321-4566">电话：{$conf['tel']}</a>
+                        </li>
+                        <li>
+                            <i class="ri-mail-send-line"></i>
+                            <a href="javascript:;">
+                                <span class="__cf_email__">邮箱：{$conf['email']}</span></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-3 col-sm-6">
+                <div class="single-footer-widget">
+                    <h3>客户服务</h3>
+                    <ul class="import-link">
+                        <li>
+                            <a href="/article/index/id/3" target="_blank">如何注册成为会员</a>
+                        </li>
+                        <li>
+                            <a href="/article/index/id/4" target="_blank">如何搜索</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-3 col-sm-6">
+                <div class="single-footer-widget">
+                    <h3>服务条款</h3>
+                    <ul class="import-link">
+                        <li>
+                            <a href="/article/index/id/5" target="_blank">用户协议</a>
+                        </li>
+                        <li>
+                            <a href="/article/index/id/6" target="_blank">如何退款</a>
+                        </li>
+                        <li>
+                            <a href="/article/index/id/7" target="_blank">运费细节</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-3 col-sm-6">
+                <div class="single-footer-widget">
+                    <h3>微信公众号</h3>
+                    {if !empty($conf['wechat_qrcode'])}
+                    <img src="{$conf['wechat_qrcode']}" width="100" height="100"/>
+                    {/if}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="copy-right-area">
+    <div class="container">
+        <p>Copyright &copy; {:date('Y')}. 备案号: {$conf['icp_no']} | 本商城由 <a target="_blank" href="https://www.sparkshop.cn/">SparkShop(星火商城)</a> 驱动</p>
+    </div>
+</div>

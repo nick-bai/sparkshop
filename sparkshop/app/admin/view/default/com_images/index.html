@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>资源管理</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+</head>
+<body>
+<!-- 组件导入 -->
+{include file="/components/fileSelect"}
+<div id="app">
+    <file-select></file-select>
+</div>
+<script>
+    new Vue({
+        el: '#app',
+        data: function() {
+            return {
+
+            }
+        },
+        mounted() {
+        },
+        methods: {
+
+        }
+    })
+</script>
+<style>
+    #app {
+        height: 100%;
+    }
+</style>
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="zh-CN" xml:lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{if !empty($goodsDetail['seo_title'])}{$goodsDetail['seo_title']}{else/}{$goodsDetail['name']}{/if}</title>
+    <meta name="description" {if !empty($goodsDetail['seo_desc'])}content="{$goodsDetail['seo_desc']}"{else/}content="{$goodsDetail['name']}"{/if}/>
+    <meta name="keywords" {if !empty($goodsDetail['seo_keywords'])}content="{$goodsDetail['seo_keywords']}"{else/}content="{$goodsDetail['name']}"{/if}>
+    <link rel="stylesheet" href="{__CSS__}/bootstrap.min.css">
+    <link rel="stylesheet" href="{__CSS__}/style.css">
+    <link rel="stylesheet" href="{__CSS__}/iconfont.css">
+    <link rel="stylesheet" href="{__CSS__}/goods.css">
+    <link rel="stylesheet" href="{__STATIC__}/swiper/swiper-bundle.min.css">
+    <script src="{__JS__}/notify_stand.js"></script>
+    <script src="{__STATIC__}/swiper/swiper-bundle.min.js"></script>
+    <script src="{__JS__}/jquery.min.js"></script>
+    <script src="{__JS__}/bootstrap.bundle.min.js"></script>
+    <script src="{__JS__}/meanmenu.min.js"></script>
+</head>
+<body>
+{include file="public/header_no_nav"}
+<div class="bar">
+    <div class="container bar-div">首页 >> {$goodsDetail['name']}</div>
+</div>
+<div class="container box-height">
+    <div class="row box-height">
+        <div class="col-md-10 box-height">
+            <div class="row" style="min-height: 530px;margin-top: 40px">
+                <div class="col-md-5">
+                    <div class="carousel">
+                        {if !empty($goodsDetail['slider_image'])}
+                        <img src="{$goodsDetail['slider_image'][0]}" width="380px" height="380px"/>
+                        {/if}
+                    </div>
+                    <div class="goods-imgs">
+                        <div class="swiper" style="height: 100%;width: 100%">
+                            <div class="swiper-wrapper">
+                                {foreach name="goodsDetail['slider_image']" item="vo"}
+                                <div class="swiper-slide"><img src="{$vo}"/></div>
+                                {/foreach}
+                            </div>
+                            <div class="swiper-button-next"></div>
+                            <div class="swiper-button-prev"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <div class="goods-title">{$goodsDetail['name']}</div>
+                    <div class="row money" style="width: 98%">
+                        <div class="col-md-8 money-wrap">
+                            原价：
+                            <del id="del-price">￥{$price['original_price']}</del>
+                            <div class="price">￥ <span id="price">{$price['price']}</span></div>
+                        </div>
+                    </div>
+                    {if !empty($goodsRule)}
+                    <div class="attribute">
+                        {foreach name="$goodsRule" item="vo" key="key"}
+                        <div class="item">
+                            <div class="item-name">
+                                <span>{$vo['title']}</span>
+                            </div>
+                            <ul class="item-items" data-idx="{$key}">
+                                {foreach name="$vo['item']" item="v" key="k"}
+                                <li data-item="{$v}" {if $k eq 0}class="item-active" {/if}>{$v}</li>
+                                {/foreach}
+                            </ul>
+                        </div>
+                        {/foreach}
+                    </div>
+                    {/if}
+                    <div class="buy-num">
+                        <div class="item">
+                            <ul class="btn-numbox">
+                                <li><span class="number">数量</span></li>
+                                <li>
+                                    <ul class="count">
+                                        <li><span id="num-jian" class="num-jian">-</span></li>
+                                        <li><input type="number" class="input-num" id="input-num" value="1"/></li>
+                                        <li><span id="num-jia" class="num-jia">+</span></li>
+                                    </ul>
+                                </li>
+                                <li><span class="kucun">（库存:<span id="stock">{$goodsDetail['stock']}</span>）</span></li>
+                                　　　
+                            </ul>
+                        </div>
+                    </div>
+                    <div style="margin-top: 50px;position: relative;">
+                        <button class="goods-btn" style="margin-left: 10px" id="buyNow">立即购买</button>
+                    </div>
+                </div>
+            </div>
+            <div class="goods-detail" style="margin-bottom: 80px;">
+                <div class="content-bar">
+                    <div class="bar-active"> 产品详情</div>
+                </div>
+                <div class="good-content tab-content" id="tab-0">
+                    {$goodsContent['content']|raw}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 box-right-height" style="margin-top: 40px;border: 1px solid #efefef">
+            <div class="title"><span>热销推荐</span></div>
+            <div class="recomment-list">
+                {foreach name="hotSale" item="vo"}
+                <div class="item">
+                    <div class="image">
+                        <img src="{$vo['img']}">
+                    </div>
+                    <div class="text">
+                        <div class="name"><a href="/goods/{$vo['id']}" class="hot-txt">{$vo['name']}</a></div>
+                        <div class="acea-row row-between-wrapper">
+                            <div class="rec-money">
+                                ￥<span>{$vo['price']|number_format=###}</span>
+                            </div>
+                            <div class="rec-sales">销量 {$vo['sales']}</div>
+                        </div>
+                    </div>
+                </div>
+                {/foreach}
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 底部 -->
+{include file="public/footer"}
+<div style="display: none">
+    <form method="post" action="/index/order">
+        <input type="hidden" name="order_data" id="order_data"/>
+        <button type="submit" id="buy_goods"></button>
+    </form>
+</div>
+<div class="go-top">
+    <i class="iconfont icon-yooxi"></i>
+    <i class="iconfont icon-yooxi"></i>
+</div>
+
+<script src="{__JS__}/custom.js"></script>
+<script src="/static/js/layui/layui.js"></script>
+<script>
+    let selectedMap = [];
+    var sku2Detail = {$sku2Detail | raw};
+    var skuKey = '';
+    let checkedGoods = [{
+        id: {$goodsDetail['id']},
+        price: 0,
+        num: 1,
+        rule_id: 0,
+        type: {$type},
+        seckill_id: {$seckill_id},
+        seckill_goods_id: 0
+    }];
+    var buyLimit = 0;
+    var unit = '{$goodsDetail["unit"]}';
+
+    $(function () {
+        $('.item-items li').each(function () {
+            if ($(this).hasClass('item-active')) {
+                skuKey += $(this).attr('data-item') + '※';
+            }
+        });
+        skuKey = skuKey.substr(0, skuKey.length - 1);
+
+        // 多规格的
+        if (skuKey != '') {
+            var skuInfo = sku2Detail[skuKey];
+            checkedGoods[0].rule_id = skuInfo.id;
+            checkedGoods[0].seckill_goods_id = skuInfo.seckill_goods_id;
+            buyLimit = skuInfo.limit;
+        } else {
+            checkedGoods[0].rule_id = sku2Detail.id;
+            checkedGoods[0].seckill_goods_id = sku2Detail.seckill_goods_id;
+            buyLimit = sku2Detail.limit;
+        }
+    })
+
+    $('.goods-imgs .swiper-slide').hover(function () {
+        $(this).addClass('slider-active').siblings().removeClass('slider-active');
+
+        $(this).parents('.goods-imgs').siblings('.carousel').find('img').attr('src', $(this).find('img').attr('src'))
+    });
+
+    var mySwiper = new Swiper('.swiper', {
+        loop: false,
+        slidesPerView: 4,
+        spaceBetween: 12,
+        navigation: {
+            nextEl: ".swiper-button-next",
+            prevEl: ".swiper-button-prev",
+        },
+    });
+
+    // 选择规格
+    $('.item-items li').click(function () {
+
+        let index = $(this).parent().attr('data-idx');
+        if (index == 0) {
+            $('.item-items li').removeClass('item-active');
+        }
+
+        $(this).removeClass('item-active').addClass('item-active').siblings().removeClass('item-active');
+
+        skuKey = '';
+        $('.item-items li').each(function () {
+            if ($(this).hasClass('item-active')) {
+                skuKey += $(this).attr('data-item') + '※';
+            }
+        });
+        skuKey = skuKey.substr(0, skuKey.length - 1);
+        var skuInfo = sku2Detail[skuKey];
+
+        $('#del-price').text('￥' + skuInfo.goods_price);
+        $('#price').text(skuInfo.seckill_price);
+        if (skuInfo.image != '') {
+            $('.carousel img').attr('src', skuInfo.image);
+        }
+        $('#stock').text(skuInfo.stock);
+        checkedGoods[0].rule_id = skuInfo.id;
+        checkedGoods[0].price = skuInfo.seckill_price;
+        checkedGoods[0].seckill_goods_id = skuInfo.seckill_goods_id;
+        buyLimit = skuInfo.limit;
+    })
+
+    // 加数量
+    $('#num-jia').click(function () {
+        let num = parseInt($('#input-num').val());
+        num += 1;
+        if (num > buyLimit) {
+            notify.error('每人最多购买' + buyLimit + unit);
+            return false;
+        }
+        $('#input-num').val(num);
+        checkedGoods[0].num = num
+    });
+
+    // 减数量
+    $('#num-jian').click(function () {
+        let num = parseInt($('#input-num').val());
+        if (num == 1) {
+            num = 1;
+        } else {
+            num -= 1;
+        }
+        if (num > buyLimit) {
+            notify.error('每人最多购买' + buyLimit + unit);
+            return false;
+        }
+
+        $('#input-num').val(num);
+        checkedGoods[0].num = num
+    });
+
+    // 开始购买
+    $('#buyNow').click(function () {
+
+        if ($('#input-num').val() <= 0 || $('#input-num').val() == '') {
+            notify.error('请选择正确的数量！')
+            return false;
+        }
+
+        if ($('#input-num').val() > stock) {
+            notify.error('您要购买的数量大于该商品的库存数量，请重新选择！')
+            return false;
+        }
+
+        $('#order_data').val(JSON.stringify(checkedGoods));
+        $('#buy_goods').click();
+    });
+</script>
+</body>
+</html>

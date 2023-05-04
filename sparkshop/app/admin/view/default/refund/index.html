@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>售后订单</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+</head>
+<body>
+<div id="app">
+    <div class="app-loading" v-if="pageLoading">
+        <div class="app-loading__logo">
+            <img src="{__IMG__}/logo.png"/>
+        </div>
+        <div class="app-loading__loader"></div>
+        <div class="app-loading__title">{$title}</div>
+    </div>
+    <el-card class="box-card" v-else>
+        <div slot="header" class="clearfix">
+            <span>售后订单</span>
+        </div>
+        <div class="search-box">
+            <el-form ref="form" :model="searchForm" label-width="80px">
+                <el-form-item label="退款状态" style="margin-bottom: 10px;">
+                    <el-button-group>
+                        <el-button :class="{'primary': searchForm.status == 0}" size="small" @click="checkStatus(0)">全部</el-button>
+                        <el-button :class="{'primary': searchForm.status == 1}" size="small" @click="checkStatus(1)">
+                            <el-badge :value="unCheck" class="item" type="danger" v-if="unCheck > 0">待审批</el-badge>
+                            <span v-else>待审批</span>
+                        </el-button>
+                        <el-button :class="{'primary': searchForm.status == 2}" size="small" @click="checkStatus(2)">已通过</el-button>
+                        <el-button :class="{'primary': searchForm.status == 3}" size="small" @click="checkStatus(3)">已拒绝</el-button>
+                        <el-button :class="{'primary': searchForm.status == 4}" size="small" @click="checkStatus(4)">已取消</el-button>
+                    </el-button-group>
+                </el-form-item>
+            </el-form>
+            <el-form :inline="true" :model="searchForm" class="demo-form-inline" label-width="80px">
+                <el-form-item label="订单号">
+                    <el-input v-model="searchForm.order_no" placeholder="订单号" style="width: 300px" size="small"></el-input>
+                </el-form-item>
+                <el-form-item label="退款时间">
+                    <el-date-picker
+                            size="small"
+                            v-model="searchForm.create_time"
+                            type="daterange"
+                            value-format="yyyy-MM-dd"
+                            range-separator="至"
+                            start-placeholder="开始日期"
+                            end-placeholder="结束日期">
+                    </el-date-picker>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="search" icon="el-icon-search" size="small">查询</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+        <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-bottom: 10px"></div>
+        <el-table
+                :data="tableData"
+                :row-style="{ height: '57px'}"
+                style="width: 100%;font-size: 12px">
+            <el-table-column
+                    label="订单号"
+                    prop="refund_order_no"
+                    width="200px">
+            </el-table-column>
+            <el-table-column
+                    label="退款商品"
+                    width="400px">
+                <template slot-scope="scope">
+                    <div v-for="item in scope.row.detail" :key="item.id">
+                        <div class="goods-info">
+                            <div class="goods-img">
+                                <img :src="item.logo" style="height: 36px;width: 36px">
+                            </div>
+                            <div class="goods-name">
+                                {{ item.goods_name }}
+                                <div v-if="item.rule != 0">
+                                    {{ item.rule.split('※').join(' ') }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="goods-price">
+                            ￥{{ item.price }} × {{ item.apply_refund_num }}
+                        </div>
+                    </div>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    label="退款人">
+                <template slot-scope="scope">
+                    <p>{{ scope.row.user_name }}</p>
+                    <p>ID: {{ scope.row.user_id }}</p>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="create_time"
+                    label="退款时间"
+                    width="160px">
+            </el-table-column>
+            <el-table-column
+                    prop="step_txt"
+                    label="退款进度">
+            </el-table-column>
+            <el-table-column
+                    prop="status_txt"
+                    label="退款状态">
+            </el-table-column>
+            <el-table-column
+                    prop="apply_refund_reason"
+                    label="退款原因">
+            </el-table-column>
+            <el-table-column
+                    label="操作"
+                    fixed="right"
+                    width="150px">
+                <template slot-scope="scope">
+                    <el-dropdown @command="handleMore($event, scope.row)">
+                        <span class="el-dropdown-link" style="font-size: 12px">
+                        更多 <i class="el-icon-arrow-down el-icon--right"></i>
+                        </span>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item command="detail">订单详情</el-dropdown-item>
+                            <el-dropdown-item command="agreeRefundMoney" v-if="(scope.row.refund_type == 1 && scope.row.step == 2 && scope.row.status == 1) ||
+                                                (scope.row.refund_type == 2 && scope.row.step == 4 && scope.row.status == 1)">同意退款</el-dropdown-item>
+                            <el-dropdown-item command="refuseRefundMoney" v-if="(scope.row.refund_type == 1 && scope.row.step == 2 && scope.row.status == 1) ||
+                                                (scope.row.refund_type == 2 && scope.row.step == 4 && scope.row.status == 1)">拒绝退款</el-dropdown-item>
+                            <el-dropdown-item command="agreeRefundGoods" v-if="scope.row.refund_type == 2 && scope.row.step == 2 && scope.row.status == 1">同意退货</el-dropdown-item>
+                            <el-dropdown-item command="refuseRefundGoods" v-if="scope.row.refund_type == 2 && scope.row.step == 2 && scope.row.status == 1">拒绝退货</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </template>
+            </el-table-column>
+        </el-table>
+        <div class="page-div" style="margin-top: 20px">
+            <el-pagination
+                    background
+                    layout="prev, pager, next"
+                    :page-size="searchForm.limit"
+                    @current-change="pageChangeHandle"
+                    :total="page.total">
+            </el-pagination>
+        </div>
+    </el-card>
+
+    <el-dialog
+            title="退款详情"
+            :visible.sync="orderVisible"
+            width="60%">
+        {include file="/refund/form"}
+    </el-dialog>
+
+    <el-dialog
+            title="同意退款"
+            :visible.sync="refundMoneyVisible"
+            width="40%">
+        <el-form ref="form" :model="refundMoneyForm" label-width="80px">
+            <el-form-item label="订单号">
+                <el-input v-model="orderNo" disabled></el-input>
+            </el-form-item>
+            <el-form-item label="退款金额">
+                <el-input v-model="refundMoneyForm.refund_price" type="number"></el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="submitAgreeRefundMoney">确定提交</el-button>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+
+    <el-dialog
+            title="拒绝退款"
+            :visible.sync="refuseMoneyVisible"
+            width="40%">
+        <el-form ref="form" :model="refuseRefundMoneyForm" label-width="100px">
+            <el-form-item label="拒绝退款原因">
+                <el-input v-model="refuseRefundMoneyForm.refund_reason" type="textarea" rows="3"></el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="submitRefuseRefundMoney">确定提交</el-button>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+</div>
+<script>
+    new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                pageLoading: true,
+                baseIndex: '/{:config("shop.backend_index")}/',
+                searchForm: {
+                    status: 0,
+                    order_no: '',
+                    create_time: '',
+                    page: 1,
+                    limit: 10
+                },
+                page: {
+                    total: 0
+                },
+                loading: false,
+                tableData: [],
+                orderVisible: false,
+                refundMoneyVisible: false,
+                refuseMoneyVisible: false,
+                orderDetail: {
+                    imgJson: {},
+                    refund: {},
+                    info: {},
+                    status: {},
+                    payWay: {}
+                },
+                orderNo: '',
+                refundMoneyForm: {
+                    id: 0,
+                    status: 1,
+                    refund_price: 0
+                },
+                refuseRefundMoneyForm: {
+                    id: 0,
+                    status: 2,
+                    refund_reason: ''
+                },
+                unCheck: 0
+            }
+        },
+        mounted() {
+            this.getList()
+            this.pageLoading = false
+        },
+        methods: {
+            // 获取列表
+            async getList() {
+                let res = await request.get(this.baseIndex + "refund/index", this.searchForm)
+                this.tableData = res.data.data
+                this.page.total = res.data.total
+                this.unCheck = res.data.unCheck
+            },
+            // 选择订单
+            checkStatus(status) {
+                this.searchForm.status = status
+                this.getList()
+            },
+            // 查询
+            search() {
+                this.getList()
+            },
+            pageChangeHandle(page) {
+                this.searchForm.page = page
+                this.getList()
+            },
+            // 更多的方法
+            handleMore(event, row) {
+                if (event == 'detail') {
+                    this.orderVisible= true
+                    this.getOrderDetail(row)
+                } else if (event == 'agreeRefundMoney') {
+                    this.refundMoneyVisible = true
+                    this.orderNo = row.refund_order_no
+                    this.refundMoneyForm.id = row.id
+                    this.refundMoneyForm.refund_price = row.refund_price
+                } else if (event == 'refuseRefundMoney') {
+                    this.refuseRefundMoneyForm.id = row.id
+                    this.refuseMoneyVisible = true
+                } else if (event == 'agreeRefundGoods') {
+                    this.submitAgreeRefundGoods(row.id)
+                } else if (event == 'refuseRefundGoods') {
+                    this.submitRefuseRefundGoods(row.id)
+                }
+            },
+            // 获取退款详情
+            async getOrderDetail(row) {
+                let res = await request.get(this.baseIndex + "refund/detail", {id: row.order_id, refund: row.id})
+                this.orderDetail = res.data
+            },
+            // 同意退款
+            async submitAgreeRefundMoney() {
+                let res = await request.post(this.baseIndex + "refund/checkRefundMoney", this.refundMoneyForm)
+                if (res.code == 0) {
+                    this.$message.success(res.msg)
+                    this.refundMoneyVisible = false
+                    this.getList()
+                } else {
+                    this.$message.error(res.msg)
+                }
+            },
+            // 拒绝退款
+            async submitRefuseRefundMoney() {
+                let res = await request.post(this.baseIndex + "refund/checkRefundMoney", this.refuseRefundMoneyForm)
+                if (res.code == 0) {
+                    this.$message.success(res.msg)
+                    this.refuseMoneyVisible = false
+                    this.getList()
+                } else {
+                    this.$message.error(res.msg)
+                }
+            },
+            // 同意退货
+            submitAgreeRefundGoods(id) {
+                this.$confirm('确定同意退货?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    let res = await request.post(this.baseIndex + 'refund/checkRefundGoods', {id: id, status: 1})
+                    if (res.code == 0) {
+                        this.$message.success(res.msg)
+                        this.getList()
+                    } else {
+                        this.$message.error(res.msg)
+                    }
+                }).catch(() => {});
+            },
+            // 拒绝退货
+            submitRefuseRefundGoods(id) {
+                this.$confirm('确定拒绝退货?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    let res = await request.post(this.baseIndex + 'refund/checkRefundGoods', {id: id, status: 2})
+                    if (res.code == 0) {
+                        this.$message.success(res.msg)
+                        this.getList()
+                    } else {
+                        this.$message.error(res.msg)
+                    }
+                }).catch(() => {});
+            }
+        },
+    })
+</script>
+<style>
+    .primary {
+        color: #FFF;
+        background-color: #409EFF;
+        border-color: #409EFF;
+    }
+    .goods-info {
+        width: 100%;
+        display: flex;
+    }
+    .goods-info .goods-img {
+        height: 36px;
+        width: 36px;
+        margin-top: 6px;
+    }
+    .goods-name {
+        margin-left: 10px
+    }
+    .goods-price {
+        color: #F56C6C;
+        font-weight: 700;
+        padding-left: 36px;
+        margin-left: 10px
+    }
+    .el-dropdown-link {
+        cursor: pointer;
+        color: #409EFF;
+    }
+    .el-icon-arrow-down {
+        font-size: 12px;
+    }
+</style>
+</body>
+</html>

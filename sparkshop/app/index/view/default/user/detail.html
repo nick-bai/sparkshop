@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="zh-CN" xml:lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>用户中心</title>
+    <link rel="stylesheet" href="{__CSS__}/bootstrap.min.css">
+    <link rel="stylesheet" href="{__CSS__}/style.css">
+    <link rel="stylesheet" href="{__CSS__}/iconfont.css">
+    <link rel="stylesheet" href="{__CSS__}/user.css">
+    <script src="{__JS__}/jquery.min.js"></script>
+    <script src="{__JS__}/bootstrap.bundle.min.js"></script>
+    <script src="{__JS__}/meanmenu.min.js"></script>
+</head>
+<body style="background: #f9f9f9;">
+{include file="public/header_no_nav"}
+<div class="user_container">
+    <div style="color: #757575">
+        <a href="/">首页</a> > 用户中心
+    </div>
+    <div class="user_content">
+        {include file="public/user_menu"}
+        <div class="content_detail" style="padding: 20px 20px;">
+            <div class="sub_box">
+                <h2 class="subtitle">订单号：{$order['order_no']}</h2>
+                <div class="actions">
+                    <div class="status-btn-box">
+                        <a title="申请售后" class="btn-small btn-line-gray" style="margin-left: 10px;margin-top: 0" href="/user">返回</a>
+                    </div>
+                </div>
+            </div>
+            {if !empty($refund) && $refund['refunded_price'] > 0}
+            <div class="am-alert" style="color:#757575">该订单已退款,已退款金额 <span style="color:#e93323">￥{$refund['refunded_price']}</span> <a href="/userOrder/refundDetail/id/{$refund['id']}" style="color:#31BDEC">查看详情</a></div>
+            {/if}
+            <div class="express">
+                <div class="order_title">
+                    <span>{$order['status_txt']}</span>
+                </div>
+                <div class="order-progress">
+                    <ol class="progress-list clearfix">
+                        <li class="step step-done step-first">
+                            <div class="order_progress">
+                                <span class="text">
+                                    下单
+                                </span>
+                            </div>
+                            <div class="info">
+                                {$order['create_time']}
+                            </div>
+                        </li>
+                        <li class="step {if !empty($order['pay_time'])}step-done{/if}">
+                            <div class="order_progress">
+                                <span class="text">
+                                    付款
+                                </span>
+                            </div>
+                            <div class="info">
+                                {$order['pay_time']}
+                            </div>
+                        </li>
+                        <li class="step {if !empty($order['delivery_time'])}step-done{/if}">
+                            <div class="order_progress">
+                                <span class="text">
+                                    发货
+                                </span>
+                            </div>
+                            <div class="info">
+                                {$order['delivery_time']}
+                            </div>
+                        </li>
+                        <li class="step {if !empty($order['received_time'])}step-done{/if}">
+                            <div class="order_progress">
+                                <span class="text">
+                                    交易成功
+                                </span>
+                            </div>
+                            <div class="info">
+                                {$order['received_time']}
+                            </div>
+                        </li>
+                        <li class="step step_last {if !empty($order['user_comments_time'])}step-done{/if}">
+                            <div class="order_progress">
+                                <span class="text">
+                                    评价
+                                </span>
+                            </div>
+                            <div class="info">
+                                {$order['user_comments_time']}
+                            </div>
+                        </li>
+                    </ol>
+                </div>
+
+                <div class="order-delivery">
+                    <p class="delivery-num">
+                        物流公司：{:empty($order['delivery_name']) ? '-' : $order['delivery_name']}
+                        运单号：{:empty($order['delivery_no']) ? '-' : $order['delivery_no']}
+                        {if !empty($order['delivery_no'])}
+                        <a href="/index/express/{$order['id']}" style="color: #31BDEC">查看物流</a>
+                        {/if}
+                    </p>
+                </div>
+            </div>
+            <div class="order-goods">
+                <table class="goods-table">
+                    {foreach name="order['detail']" item="vo" key="key"}
+                    <tr class="goods-box" style="height: 110px">
+                        <td class="col col-thumb">
+                            <div class="figure figure-thumb">
+                                <a target="_blank" href="/index/goods/{$vo['goods_id']}">
+                                    <img src="{$vo['logo']}" width="80" height="80" alt="{$vo['goods_name']}">
+                                </a>
+                            </div>
+                        </td>
+                        <td colspan="3" class="col col-info">
+                            <table class="col-info-box">
+                                <tr class="goods-box-info">
+                                    <td class="col col-name">
+                                        <div class="name">
+                                            <a target="_blank" href="/index/goods/{$vo['goods_id']}" style="color:#757575;">
+                                                {$vo['goods_name']}
+                                            </a>
+                                            <div style="color: #757575;margin-top: 10px">
+                                                {if !empty($vo['rule'])}{:str_replace('※', ' ', $vo['rule'])}{/if}
+                                                {if !empty($refund) && $refund['order_detail_id'] == $vo['id']}<span style="color:#e93323">【退款{$refund['status_txt']}】</span>{/if}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="col col-price">
+                                        <p class="price" style="margin-left: 50px;color:#e93323">
+                                            {$vo['price']}元 × {$vo['cart_num']}<br/>
+                                            {if $vo['refunded_price'] > 0} 已退：-￥{:number_format($vo['refunded_price'], 2)} {/if}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {/foreach}
+                </table>
+            </div>
+            <div class="order-detail-info">
+                <h3>收货信息</h3>
+                <table class="info-table">
+                    <tbody>
+                    <tr>
+                        <th>姓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;名：</th>
+                        <td>{$order['address']['user_name']}</td>
+                    </tr>
+                    <tr>
+                        <th>联系电话：</th>
+                        <td>{$order['address']['phone']}</td>
+                    </tr>
+                    <tr>
+                        <th>收货地址：</th>
+                        <td>{$order['address']['province']}{$order['address']['city']}{$order['address']['county']}{$order['address']['detail']}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="order-detail-info" style="border-bottom: 1px solid #e0e0e0;min-height: 80px">
+                <h3>支付方式</h3>
+                <table class="info-table">
+                    <tbody>
+                    <tr>
+                        <th>支付方式：</th>
+                        <td>{$order['pay_txt']}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="order-detail-total">
+                <table class="total-table">
+                    <tbody>
+                    <tr>
+                        <th>商品总价：</th>
+                        <td>
+                            <span class="num">{:number_format($order['order_price'], 2)}</span>元
+                        </td>
+                    </tr>
+                    {if $order['type'] eq 1}
+                    <tr>
+                        <th>优惠券：</th>
+                        <td>
+                            <span class="num">-{$order['coupon_amount']}</span>元
+                        </td>
+                    </tr>
+                    {if $vipConf['user_level_open'] == 1}
+                    <tr>
+                        <th>会员折扣：</th>
+                        <td>
+                            <span class="num">-{$order['vip_discount']}</span>元
+                        </td>
+                    </tr>
+                    {/if}
+                    {/if}
+                    <tr>
+                        <th>运费：</th>
+                        <td>
+                            <span class="num">{:number_format($order['pay_postage'], 2)}</span>元
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>退款金额：</th>
+                        <td>
+                            <span class="num">-{:number_format($totalRefundAmount, 2)}</span>元
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="total">实付金额：</th>
+                        <td class="total">
+                            <span class="num">{:number_format($order['pay_price'], 2)}</span>元
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{include file="public/footer"}
+<div class="go-top">
+    <i class="iconfont icon-yooxi"></i>
+    <i class="iconfont icon-yooxi"></i>
+</div>
+<script src="{__JS__}/custom.js"></script>
+</body>
+</html>

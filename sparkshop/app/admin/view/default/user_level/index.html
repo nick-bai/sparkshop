@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户等级</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+</head>
+<body>
+<!-- 组件导入 -->
+{include file="/components/fileSelect"}
+<div id="app">
+    <div class="app-loading" v-if="pageLoading">
+        <div class="app-loading__logo">
+            <img src="{__IMG__}/logo.png"/>
+        </div>
+        <div class="app-loading__loader"></div>
+        <div class="app-loading__title">{$title}</div>
+    </div>
+    <el-card class="box-card" v-else>
+        <div slot="header" class="clearfix">
+            <span>用户等级</span>
+        </div>
+        <div class="search-box">
+            <el-form :inline="true" :model="searchForm" class="demo-form-inline">
+                <el-form-item label="等级名称">
+                    <el-input v-model="searchForm.title" placeholder="" clearable size="small"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="onSubmit" size="small" icon="el-icon-search">查询</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+        <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-bottom: 10px"></div>
+        <el-button type="primary" icon="el-icon-plus" size="small" @click="addLevel" style="margin-top: 10px">添加等级
+        </el-button>
+        <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-top: 10px"></div>
+        <el-table
+                :data="tableData"
+                style="width: 100%;">
+            <el-table-column
+                    label="图标">
+                <template slot-scope="scope">
+                    <img :src="scope.row.icon" width="30px" height="30px">
+                </template>
+            </el-table-column>
+            <el-table-column
+                    label="背景图">
+                <template slot-scope="scope">
+                    <img :src="scope.row.card_bg" width="36px" height="36px">
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="title"
+                    label="等级名称">
+            </el-table-column>
+            <el-table-column
+                    prop="level"
+                    label="等级值">
+            </el-table-column>
+            <el-table-column
+                    prop="discount"
+                    label="享受折扣">
+            </el-table-column>
+            <el-table-column
+                    prop="experience"
+                    label="经验值">
+            </el-table-column>
+            <el-table-column
+                    label="是否显示">
+                <template slot-scope="scope">
+                    <el-tag type="success" v-if="scope.row.status == 1">显示</el-tag>
+                    <el-tag type="danger" v-if="scope.row.status == 2">隐藏</el-tag>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="operation"
+                    label="操作">
+                <template slot-scope="scope">
+                    <el-button @click="handleEdit(scope.row)" type="text" size="small">编辑</el-button>
+                    <el-button @click="handleDel(scope.row)" type="text" size="small">删除</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+        <el-pagination
+                style="margin-top: 10px"
+                background
+                layout="->, prev, pager, next"
+                :page-size="searchForm.limit"
+                @current-change="handlePageChange"
+                :total="total">
+        </el-pagination>
+
+        <el-dialog :title="title" :visible.sync="dialogVisible" width="700px" destroy-on-close :close-on-click-modal="false">
+            {include file="/user_level/save"}
+        </el-dialog>
+    </el-card>
+
+    <el-dialog title="" :visible.sync="fileSelectVisible" width="1200px" class="image-check-dialog">
+        <file-select :need-select="true" @selected-img="selectedImg" @close-dialog="fileSelectVisible=false" :select-num="1"></file-select>
+    </el-dialog>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                pageLoading: true,
+                searchForm: {
+                    title: '',
+                    limit: 15,
+                    page: 1
+                },
+                nowType: 1,
+                fileSelectVisible: false,
+                dialogVisible: false,
+                title: '新增用户等级',
+                total: 1,
+                tableData: [],
+                baseIndex: '/{:config("shop.backend_index")}/',
+                dialogCateVisible: false,
+                form: {
+                    id: 0,
+                    title: '',
+                    level: 0,
+                    discount: '100.00',
+                    experience: 0,
+                    icon: '',
+                    card_bg: '',
+                    status: 1,
+                    remark: ''
+                },
+                rules: {
+                    title: [
+                        {required: true, message: '请输入等级名称', trigger: 'blur'}
+                    ],
+                    level: [
+                        {required: true, message: '请输入等级值', trigger: 'blur'}
+                    ],
+                    discount: [
+                        {required: true, message: '请输入折扣值', trigger: 'blur'}
+                    ],
+                    experience: [
+                        {required: true, message: '请输入解锁经验值', trigger: 'blur'}
+                    ],
+                    icon: [
+                        {required: true, message: '请设置等级图标', trigger: 'blur'}
+                    ],
+                    card_bg: [
+                        {required: true, message: '请设置背景图', trigger: 'blur'}
+                    ],
+                    status: [
+                        {required: true, message: '请选择状态', trigger: 'blur'}
+                    ],
+                    remark: [
+                        {required: true, message: '请输入等级说明', trigger: 'blur'}
+                    ]
+                },
+                loading: false
+            }
+        },
+        mounted() {
+            this.getList()
+            this.pageLoading = false
+        },
+        methods: {
+            // 获取列表
+            async getList() {
+                let res = await request.get(this.baseIndex + 'userLevel/index', this.searchForm)
+                this.tableData = res.data.data
+                this.total = res.data.total
+            },
+            // 初始化
+            initForm() {
+                this.form = {
+                    id: 0,
+                    title: '',
+                    level: 0,
+                    discount: '100.00',
+                    experience: 0,
+                    icon: '',
+                    card_bg: '',
+                    status: 1,
+                    remark: ''
+                }
+            },
+            // 搜索
+            onSubmit() {
+                this.getList()
+            },
+            addLevel() {
+                this.title = '添加用户等级'
+                this.initForm()
+                this.dialogVisible = true
+            },
+            // 编辑参数
+            handleEdit(item) {
+                this.title = '编辑用户等级'
+                this.dialogVisible = true
+
+                this.form.id = item.id
+                this.form.title = item.title
+                this.form.level = item.level
+                this.form.discount = item.discount
+                this.form.experience = item.experience
+                this.form.icon = item.icon
+                this.form.card_bg = item.card_bg
+                this.form.status = item.status
+                this.form.remark = item.remark
+            },
+            // 删除参数
+            handleDel(item) {
+                this.$confirm('此操作将永久删除该等级 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    let res = await request.get(this.baseIndex + 'userLevel/del', {id: item.id})
+                    if (res.code == 0) {
+                        this.$message.success(res.msg)
+                        this.getList()
+                    } else {
+                        this.$message.error(res.msg)
+                    }
+                }).catch(() => {});
+            },
+            // 选资源
+            showImage(type) {
+                this.nowType = type
+                this.fileSelectVisible = true
+            },
+            selectedImg(file) {
+                if (this.nowType == 1) {
+                    this.form.icon = file[0].url
+                } else {
+                    this.form.card_bg = file[0].url
+                }
+                this.fileSelectVisible = false
+            },
+            // 移除图片
+            removeImg() {
+                this.form.icon = ''
+            },
+            // 移除背景图
+            removeBgImg() {
+                this.form.card_bg = ''
+            },
+            // 分页
+            handlePageChange(page) {
+                this.searchForm.page = page
+                this.getList()
+            },
+            // 新增或编辑
+            optSubmit(formName) {
+                this.$refs[formName].validate(async (valid) => {
+                    if (valid) {
+                        this.loading = true
+                        let res;
+                        if (this.form.id) {
+                            res = await request.post(this.baseIndex + 'userLevel/edit', this.form)
+                        } else {
+                            res = await request.post(this.baseIndex + 'userLevel/add', this.form)
+                        }
+                        this.loading = false
+                        if (res.code == 0) {
+                            this.dialogVisible = false
+                            this.$message.success(res.msg)
+                            this.getList()
+                        } else {
+                            this.$message.error(res.msg)
+                        }
+                    }
+                });
+            }
+        }
+    });
+</script>
+<style>
+    p {
+        padding: 0;
+        margin: 0;
+    }
+
+    .el-table__header tr,
+    .el-table__header th {
+        padding: 0;
+        height: 20px;
+        line-height: 20px;
+    }
+
+    .del-btn {
+        cursor: pointer;
+        color: #F56C6C
+    }
+
+    .add-btn {
+        cursor: pointer;
+        margin-top: 18px;
+        color: #409EFF
+    }
+    .img-list {
+        height: 60px;
+        padding-left: 0;
+        margin-top: 0;
+    }
+    .img-list li:first-child {
+        margin-left: 0;
+    }
+    .img-list li {
+        width: 58px;
+        height: 58px;
+        float: left;
+        margin-left: 5px;
+        cursor: pointer;
+        position: relative;
+    }
+    .addImg {
+        height: 56px;
+        width: 56px;
+        line-height: 56px;
+        text-align: center;
+        border: 1px dashed rgb(221, 221, 221);
+    }
+    ul li {list-style: none}
+    .image-check-dialog .el-dialog__header {display: none}
+    .image-check-dialog .el-dialog__body {padding: 0;}
+    .img-list .img-tools {
+        position: absolute;
+        width: 58px;
+        height: 15px;
+        line-height: 15px;
+        text-align: center;
+        top: 43px;
+        background: rgba(0, 0, 0, 0.6);
+        cursor: pointer;
+    }
+</style>
+</body>
+</html>

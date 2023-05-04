@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>SparkShop安装向导</title>
+	<meta name="renderer" content="webkit">
+	<meta charset="UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="format-detection" content="telephone=no">
+	<link rel="stylesheet" href="/static/js/layui/css/layui.css">
+	<link rel="stylesheet" href="/static/css/install.css?<php>echo rand(1000,9999);</php>">
+	<script src="/static/js/layui/layui.js"></script>
+</head>
+<body>
+
+<div class="layui-header">
+	<div class="layui-container">
+		<h1 class="logo">
+			<a href="https://sparkshop.pfecms.com">
+			<img class="pic" src="/static/images/logo.png" alt=""> <span style="margin-left: 10px;font-size: 22px!important;">SparkShop</span></a>
+		</h1>
+		<div class="title">安装向导</div>
+	</div>
+</div>
+
+<div class="layui-content">
+	<div class="layui-container">
+		<div class="layui-row">
+			<div class="layui-col-md12">
+				<div class="layui-card layui-fixed">
+					<div class="layui-card-header">
+						<span>软件许可协议</span>
+						<span class="layui-card-version"></span>
+					</div>
+					<div class="layui-card-body">
+						<div style="height:700px;overflow: auto" id="document">
+							<p>欢迎使用本SparkShop开源商城系统！在您安装、使用、复制和分发本软件之前，请您仔细阅读以下条款和条件。如果您不同意这些条款和条件，请不要安装或使用本软件。安装或使用本软件的行为将被视为您已经接受了这些条款和条件，并同意遵守这些条款和条件。</p>
+							<br/>
+							<p>1. 授权许可本软件是开源软件，授权许可遵循Apache 2.0，您可以自由地复制、分发和修改本软件。但是，您必须遵守Apache 2.0许可证的规定，包括在修改后的软件中包含Apache 2.0许可证并保留版权声明等。</p>
+							<br/>
+							<p>2. 免责声明本软件是按“现状”提供的，没有任何明示或暗示的保证，包括但不限于适销性、特定用途适用性和非侵权性的保证。在任何情况下，作者或版权持有人都不对任何因使用或无法使用本软件而导致的任何直接、间接、偶然、特殊或后果性损害负责。</p>
+							<br/>
+							<p>3. 限制除非根据本许可证明确允许，或者适用法律要求，否则您不得以任何方式出售、出租、分发或以其他方式转让本软件的任何部分。</p>
+							<br/>
+							<p>4. 终止如果您违反了本许可证的任何条款或条件，您的授权将自动终止，您必须立即停止使用本软件并销毁所有已安装或复制的软件。</p>
+							<br/>
+							<p>5. 适用法律本许可证受到适用法律的管辖，任何纠纷将受到适用法律的管辖。</p>
+							<br/>
+							<p>6. 条款修改本许可证的条款和条件可能会随时进行修改，修改后的条款和条件将在本软件的新版本中发布。如果您继续使用本软件，则表示您同意修改后的条款和条件。</p>
+							<br/>
+							<p>7. 其他条款本许可证构成了您和作者之间的完整协议，取代了任何先前的口头或书面协议，本许可证中的任何条款都不能被修改或放弃。如果本许可证的任何条款被认为是无效或不可执行的，则该条款将被删除，其余条款将继续有效。</p>
+							<br/>
+							<p>SparkShop开源商城</p>
+							<p>协议发布时间： 2023年04月25日</p>
+						</div>
+						   <div class="layui-center">
+						   	<button type="button" onclick="agree()" class="layui-btn layui-btn-normal" style="border-radius:5px !important;">同意协议</button>
+						   </div>
+		    		</div>
+					</div>
+				</div>
+			</div>
+		</div>
+    </div>
+</div>
+
+<div class="layui-footer">copyright © 2023~2024 SparkShop all rights reserved.</div>
+<script>
+	layui.use('layer', function () {
+
+		var $ = layui.jquery, layer = layui.layer;
+	})
+
+	function agree() {
+		const dom = document.getElementById('document');
+		const clientHeight = dom.clientHeight;
+		const scrollTop = dom.scrollTop;
+		const scrollHeight = dom.scrollHeight;
+
+		if (clientHeight + scrollTop >= scrollHeight - 20) {
+			window.location.href='/install/index/step1'
+		} else {
+			layer.msg('请认真阅读完用户协议')
+		}
+	}
+</script>
+</body>
+</html>

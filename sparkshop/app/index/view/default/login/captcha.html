@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>验证码</title>
+    <script src="{__JS__}/jquery.min.js"></script>
+    <script src="{__JS__}/captcha.js"></script>
+    <style>
+        .box {
+            margin-top: 50px;
+        }
+        .top-s,.top-x {
+            text-align: center;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+<div class="box" id="captcha-box">
+    <p class="top-s">身份验证</p>
+    <p class="top-x">拖动滑块，使图片角度为正</p>
+    <div id="rotateWrap1" style="margin-top: 20px">
+        <div class="rotateverify-contaniner">
+            <div class="rotate-can-wrap">
+                <canvas class="rotateCan rotate-can" width="200" height="200"></canvas>
+                <div class="statusBg status-bg"></div>
+            </div>
+            <div class="control-wrap slideDragWrap">
+                <div class="control-tips">
+                    <p class="c-tips-txt cTipsTxt">滑动将图片转正</p>
+                </div>
+                <div class="control-bor-wrap controlBorWrap"></div>
+                <div class="control-btn slideDragBtn">
+                    <i class="control-btn-ico"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    new RotateVerify('#rotateWrap1', {
+        initText: '滑动将图片转正',
+        slideImage: ['/default/static/image/captcha/1.png', '/default//static/image/captcha/2.png',
+            '/default//static/image/captcha/4.png', '/default//static/image/captcha/5.png'],
+        initUrl: "/index/captcha/initData",
+        verifyUrl: "/index/captcha/verify",
+        verifyParam: {phone: '{$phone}', type: '{$type}'},
+        getSuccessState: function (res) {
+           if (res.code == 0) {
+               parent.countDown(res.msg);
+               setTimeout(function () {
+                   var index = parent.layer.getFrameIndex(window.name);
+                   parent.layer.close(index);
+               }, 1000)
+           }
+        }
+    })
+</script>
+</body>
+</html>

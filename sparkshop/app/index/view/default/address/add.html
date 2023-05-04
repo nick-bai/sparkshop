@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>我的地址</title>
+    <link rel="stylesheet" href="/static/js/layui/css/layui.css">
+    <script src="/static/js/layui/layui.js"></script>
+    <style>
+        .layui-form-radio:hover *, .layui-form-radioed, .layui-form-radioed > i {
+            color: #e93323 !important
+        }
+    </style>
+</head>
+<body>
+<form class="layui-form" action="" style="padding: 20px">
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span style="color:#e93323">*</span> 收件人</label>
+        <div class="layui-input-block" style="width: 620px">
+            <input type="text" name="real_name" required lay-verify="required" placeholder="请输入收件人" autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span style="color:#e93323">*</span> 手机号</label>
+        <div class="layui-input-block" style="width: 620px">
+            <input type="text" name="phone" required lay-verify="required" placeholder="请输入手机号" autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">邮编</label>
+        <div class="layui-input-block" style="width: 620px">
+            <input type="text" name="post_code" placeholder="请输入邮编" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item" id="area-picker">
+        <div class="layui-form-label"><span style="color:#e93323">*</span> 省市区</div>
+        <div class="layui-input-inline" style="width: 200px;">
+            <select name="province" class="province-selector" data-value="" lay-filter="province-1">
+                <option value="">请选择省</option>
+            </select>
+        </div>
+        <div class="layui-input-inline" style="width: 200px;">
+            <select name="city" class="city-selector" data-value="" lay-filter="city-1">
+                <option value="">请选择市</option>
+            </select>
+        </div>
+        <div class="layui-input-inline" style="width: 200px;">
+            <select name="county" class="county-selector" data-value="" lay-filter="county-1">
+                <option value="">请选择区</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label"><span style="color:#e93323">*</span> 详细地址</label>
+        <div class="layui-input-block" style="width: 620px">
+            <textarea name="detail" placeholder="请输入内容" class="layui-textarea"></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">是否默认</label>
+        <div class="layui-input-block">
+            <input type="radio" name="is_default" value="1" title="是" checked>
+            <input type="radio" name="is_default" value="2" title="否">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="formDemo" style="background: #e93323">立即提交</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+</form>
+<script src="{__JS__}/notify_stand.js"></script>
+<script src="{__JS__}/jquery.min.js"></script>
+<script>
+    //Demo
+    layui.use('form', function () {
+        var form = layui.form;
+
+        form.on('submit(formDemo)', function (data) {
+            $.post('/index/address/add', data.field, function (res) {
+                if (res.code == 0) {
+                    notify.success(res.msg)
+                    setTimeout(function () {
+                        var index = parent.layer.getFrameIndex(window.name);
+                        parent.layer.close(index);
+                    }, 1500)
+                    parent.getAddressList();
+                } else {
+                    notify.error(res.msg)
+                }
+            }, 'json')
+            return false;
+        });
+    });
+
+    layui.config({
+        base: '/static/mods/'
+        , version: '1.0'
+    })
+
+    layui.use(['layer', 'form', 'layarea'], function () {
+        var layer = layui.layer
+            , form = layui.form
+            , layarea = layui.layarea;
+
+        layarea.render({
+            elem: '#area-picker',
+            data: {
+                province: '{$province}',
+                city: '{$city}',
+                county: '{$county}',
+            }
+        });
+    });
+</script>
+</body>
+</html>

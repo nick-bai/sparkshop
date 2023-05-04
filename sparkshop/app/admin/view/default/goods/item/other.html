@@ -1,0 +1,67 @@
+<el-form label-position="left" label-width="80px" ref="form" :model="form" :rules="rules">
+    <el-form-item label="seo标题">
+        <el-input v-model="form.seo_title" style="width: 500px"></el-input>
+    </el-form-item>
+    <el-form-item label="seo关键词">
+        <el-input v-model="form.seo_keywords" style="width: 500px"></el-input>
+    </el-form-item>
+    <el-form-item label="seo描述">
+        <el-input type="textarea" v-model="form.seo_desc" style="width: 500px"></el-input>
+    </el-form-item>
+
+    <el-form-item label="商品参数">
+        <el-select v-model="form.attr_tpl_id" placeholder="请选择" style="width: 365px" @change="handleSelectTpl" clearable size="small">
+            <el-option
+                    v-for="item in attr"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id">
+            </el-option>
+        </el-select>
+        <el-button icon="el-icon-plus" type="primary" @click="addAttr" size="small">添加新参数</el-button>
+    </el-form-item>
+    <div v-if="attr_table.length > 0">
+        <el-table
+                :data="attr_table"
+                border
+                style="width: 600px">
+            <el-table-column
+                    label="参数名">
+                <template slot-scope="scope">
+                    <el-input v-model="scope.row.item"></el-input>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    label="参数值">
+                <template slot-scope="scope">
+                    <el-input v-model="scope.row.value"></el-input>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    label="" width="60px">
+                <template slot-scope="scope">
+                    <i class="el-icon-delete" style="cursor: pointer;" @click="rmAttr(scope.$index)"></i>
+                </template>
+            </el-table-column>
+        </el-table>
+    </div>
+    <el-form-item label="商品推荐">
+        <el-checkbox true-label="1" false-label="2" v-model="form.is_hot">热卖</el-checkbox>
+        <el-checkbox true-label="1" false-label="2" v-model="form.is_recommend">推荐</el-checkbox>
+        <el-checkbox true-label="1" false-label="2" v-model="form.is_new">新品</el-checkbox>
+    </el-form-item>
+    <el-form-item label="客户标签">
+        <el-select v-model="label_id" multiple placeholder="请选择" style="width: 500px">
+            <el-option
+                    v-for="item in label"
+                    :key="item.value"
+                    :label="item.name"
+                    :value="item.value">
+            </el-option>
+        </el-select>
+    </el-form-item>
+    <div style="margin-top: 10px;margin-left: 80px">
+        <el-button @click="pre" size="small">上一步</el-button>
+        <el-button type="primary" @click="saveGoods" size="small">保存</el-button>
+    </div>
+</el-form>

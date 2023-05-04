@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>小程序配置</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+</head>
+<body>
+<div id="app">
+    <div class="app-loading" v-if="pageLoading">
+        <div class="app-loading__logo">
+            <img src="{__IMG__}/logo.png"/>
+        </div>
+        <div class="app-loading__loader"></div>
+        <div class="app-loading__title">{$title}</div>
+    </div>
+    <el-card class="box-card" v-else>
+        <div slot="header" class="clearfix">
+            <span>小程序配置</span>
+        </div>
+
+        <el-form ref="form" :model="form" label-width="100px">
+            <el-form-item label="appId">
+                <el-input v-model="form.miniapp_app_id" style="width: 500px"></el-input>
+            </el-form-item>
+            <el-form-item label="AppSecret">
+                <el-input v-model="form.miniapp_app_secret" style="width: 500px"></el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="save">立即保存</el-button>
+            </el-form-item>
+        </el-form>
+    </el-card>
+</div>
+
+<script>
+
+    let form = {$info|raw};
+
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                pageLoading: true,
+                form: form,
+                baseIndex: '/{:config("shop.backend_index")}/',
+            }
+        },
+        mounted() {
+            this.pageLoading = false
+        },
+        methods: {
+            async save() {
+                let res = await request.post(this.baseIndex + 'system/miniapp', this.form)
+                if (res.code == 0) {
+                    this.$message.success('保存成功')
+                } else {
+                    this.$message.error(res.msg)
+                }
+            }
+        }
+    })
+</script>
+</body>
+</html>

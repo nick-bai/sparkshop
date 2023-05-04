@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>商品管理</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+</head>
+<body>
+<div id="app">
+    <div class="app-loading" v-if="pageLoading">
+        <div class="app-loading__logo">
+            <img src="{__IMG__}/logo.png"/>
+        </div>
+        <div class="app-loading__loader"></div>
+        <div class="app-loading__title">{$title}</div>
+    </div>
+    <el-card class="box-card" v-else>
+        <div slot="header" class="clearfix">
+            <span>商品管理</span>
+        </div>
+        <div class="search-box">
+            <el-button-group>
+                <el-button :class="{'primary': searchForm.tab_type == 2}" size="small" @click="checkTab(2)">销售中</el-button>
+                <el-button :class="{'primary': searchForm.tab_type == 3}" size="small" @click="checkTab(3)">仓库中</el-button>
+                <el-button :class="{'primary': searchForm.tab_type == 4}" size="small" @click="checkTab(4)">预警中</el-button>
+                <el-button :class="{'primary': searchForm.tab_type == 5}" size="small" @click="checkTab(5)">回收站中</el-button>
+            </el-button-group>
+            <el-form :inline="true" :model="searchForm" class="demo-form-inline" style="margin-top: 20px;">
+                <el-form-item label="商品名称">
+                    <el-input v-model="searchForm.name" placeholder="" clearable size="small"></el-input>
+                </el-form-item>
+                <el-form-item label="商品分类">
+                    <el-select v-model="searchForm.cate_id" placeholder="请选择" size="small" clearable>
+                        <el-option-group
+                                v-for="group in goodsCate"
+                                :key="group.id"
+                                :label="group.name">
+                            <el-option
+                                    v-for="item in group.child"
+                                    :key="item.id"
+                                    :label="item.name"
+                                    :value="item.id">
+                            </el-option>
+                        </el-option-group>
+                    </el-select>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="onSubmit" size="small" icon="el-icon-search" >查询</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+        <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-bottom: 15px"></div>
+        <el-button type="primary" icon="el-icon-plus" size="small" @click="addGoods">添加商品</el-button>
+        <el-button type="primary" icon="el-icon-shopping-cart-full" size="small" @click="shelves(1)">批量上架</el-button>
+        <el-button type="primary" icon="el-icon-shopping-cart-2" size="small" @click="shelves(2)">批量下架</el-button>
+        <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-top: 10px"></div>
+        <el-table
+                :data="tableData"
+                @selection-change="handleSelectionChange"
+                :row-style="{ height: '57px'}"
+                style="width: 100%;font-size: 12px">
+            <el-table-column
+                    type="selection"
+                    width="55">
+            </el-table-column>
+            <el-table-column
+                    prop="id"
+                    label="商品ID"
+                    width="75">
+            </el-table-column>
+            <el-table-column
+                    label="商品图"
+                    width="100">
+                <template slot-scope="scope">
+                    <el-image :src="scope.row.pic" style="width: 36px;height: 36px"></el-image>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="name"
+                    label="商品名称">
+            </el-table-column>
+            <el-table-column
+                    prop="cate.name"
+                    label="商品分类"
+                    width="100">
+            </el-table-column>
+            <el-table-column
+                    prop="price"
+                    label="商品售价"
+                    width="100">
+            </el-table-column>
+            <el-table-column
+                    prop="sales"
+                    label="销量"
+                    width="100">
+            </el-table-column>
+            <el-table-column
+                    prop="stock"
+                    label="库存"
+                    width="100">
+            </el-table-column>
+            <el-table-column
+                    label="状态"
+                    width="100">
+                <template slot-scope="scope">
+                    <el-tag type="success" v-if="scope.row.is_show == 1">上架</el-tag>
+                    <el-tag type="danger" v-if="scope.row.is_show == 2">下架</el-tag>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    label="操作"
+                    fixed="right"
+                    width="120">
+                <template slot-scope="scope">
+                    <el-button @click="handleEdit(scope.row)" type="text" size="small" v-if="scope.row.is_del == 2">编辑</el-button>
+                    <el-button @click="handleDel(scope.row)" type="text" size="small" v-if="scope.row.is_del == 2">删除</el-button>
+                    <el-button @click="handleRecover(scope.row)" type="text" size="small" v-if="scope.row.is_del == 1">恢复</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+        <div class="page-div" style="margin-top: 20px">
+            <el-pagination
+                    background
+                    layout="prev, pager, next"
+                    :page-size="searchForm.limit"
+                    @current-change="pageChangeHandle"
+                    :total="page.total">
+            </el-pagination>
+        </div>
+    </el-card>
+</div>
+
+<script>
+    let goodsCate = {$cate|raw};
+    new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                pageLoading: true,
+                goodsCate: goodsCate,
+                treeProps: {
+                    value: 'id',
+                    label: 'name',
+                    children: 'child',
+                    checkStrictly: true
+                },
+                selectedCate: [],
+                baseIndex: '/{:config("shop.backend_index")}/',
+                searchForm: {
+                    cate_id: '',
+                    tab_type: 2,
+                    name: '',
+                    page: 1,
+                    limit: 10
+                },
+                page: {
+                    total: 0
+                },
+                tableData: [],
+                goodsIds: []
+            }
+        },
+        mounted() {
+            this.getList()
+            this.pageLoading = false
+        },
+        methods: {
+            async getList() {
+                let res = await request.get(this.baseIndex + "goods/index", this.searchForm)
+                this.tableData = res.data.data
+                this.tableData.map(item => {
+                    item.pic = JSON.parse(item.slider_image)[0]
+                    return item
+                })
+                this.page.total = res.data.total
+            },
+            // 搜索
+            onSubmit() {
+                this.searchForm.page = 1
+                this.getList()
+            },
+            // 添加商品
+            addGoods() {
+                window.location.href = this.baseIndex + "goods/add"
+            },
+            // 删除
+            handleDel(item) {
+                this.$confirm('确定删除该商品？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    let res = await request.get(this.baseIndex + 'goods/del', {id: item.id});
+                    if (res.code == 0) {
+                        this.$message.success(res.msg)
+                        setTimeout(() => {
+                            this.getList()
+                        }, 500)
+                    } else {
+                        this.$message.error(res.msg)
+                    }
+                }).catch(() => {});
+            },
+            // 恢复商品
+            handleRecover(item) {
+                this.$confirm('确定恢复该商品？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    let res = await request.get(this.baseIndex + 'goods/recover', {id: item.id});
+                    if (res.code == 0) {
+                        this.$message.success(res.msg)
+                        setTimeout(() => {
+                            this.getList()
+                        }, 500)
+                    } else {
+                        this.$message.error(res.msg)
+                    }
+                }).catch(() => {});
+            },
+            // 编辑
+            handleEdit(item) {
+                window.location.href = this.baseIndex + "goods/edit?id=" + item.id
+            },
+            // 选择状态
+            checkTab(type) {
+                this.searchForm.tab_type = type
+                this.getList()
+            },
+            handleSelectionChange(val) {
+                this.goodsIds = [];
+                val.forEach(item => {
+                    this.goodsIds.push(item.id)
+                })
+            },
+            // 翻页
+            pageChangeHandle(page) {
+                this.searchForm.page = page
+                this.getList()
+            },
+            // 批量上下架
+            shelves(isShow) {
+                if (this.goodsIds.length == 0) {
+                    this.$message.error('请勾选需要操作的商品')
+                    return false;
+                }
+
+                let title = '确定要下架该批商品？';
+                if (isShow == 1) {
+                    title = '确定要上架该批商品？';
+                }
+
+                this.$confirm(title, '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    let res = await request.post(this.baseIndex + "goods/shelf", {
+                       ids: this.goodsIds,
+                       is_show: isShow
+                    })
+
+                    if (res.code == 0) {
+                        this.$message.success('操作成功')
+                        this.getList()
+                    } else {
+                        this.$message.error(res.msg)
+                    }
+                }).catch(() => {});
+            }
+        }
+    })
+</script>
+<style>
+    .el-form-item {
+        margin-bottom: 10px !important;
+    }
+    .el-table__row td {
+        height: 57px !important;
+    }
+    .primary {
+        color: #FFF;
+        background-color: #409EFF;
+        border-color: #409EFF;
+    }
+</style>
+</body>
+</html>

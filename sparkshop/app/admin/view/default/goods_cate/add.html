@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>添加商品</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+</head>
+<body>
+<!-- 组件导入 -->
+{include file="/components/fileSelect"}
+<div id="app">
+    <el-card class="box-card">
+        <div slot="header" class="clearfix">
+            <span @click="goBack()" style="cursor: pointer;color: #66b1ff">&lt; 返回</span>
+            <el-divider direction="vertical"></el-divider>
+            <span>添加商品分类</span>
+        </div>
+        <el-form :model="form" label-width="80px" :rules="rules" ref="ruleForm" >
+            <el-form-item label="父级分类">
+                <el-input v-model="pName" style="width: 500px" disabled></el-input>
+            </el-form-item>
+            <el-form-item label="分类名称" prop="name">
+                <el-input v-model="form.name" style="width: 500px"></el-input>
+            </el-form-item>
+            <el-form-item label="图标" prop="icon">
+                <ul class="img-list">
+                    <li v-if="form.icon">
+                        <img :src="form.icon" width="58px" height="58px" alt="图片">
+                        <div class="img-tools">
+                            <i class="el-icon-delete" style="font-size: 14px;color: #fff" @click="removeIcon()"></i>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="addImg" @click="showImage">
+                            <i class="el-icon-plus"></i>
+                        </div>
+                    </li>
+                    <li style="color: #999;font-size: 12px;width: 250px;line-height: 58px;margin-left: 30px">
+                        建议尺寸：180 * 180
+                    </li>
+                </ul>
+            </el-form-item>
+            <el-form-item label="副标题">
+                <el-input v-model="form.sub_name" style="width: 500px"></el-input>
+            </el-form-item>
+            <el-form-item label="描述">
+                <el-input type="textarea" rows="3" v-model="form.desc" style="width: 500px"></el-input>
+            </el-form-item>
+            <el-form-item label="大图">
+                <ul class="img-list">
+                    <li v-if="form.big_pic">
+                        <img :src="form.big_pic" width="58px" height="58px" alt="图片">
+                        <div class="img-tools">
+                            <i class="el-icon-delete" style="font-size: 14px;color: #fff" @click="removeImg()"></i>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="addImg" @click="showImageBig">
+                            <i class="el-icon-plus"></i>
+                        </div>
+                    </li>
+                    <li style="color: #999;font-size: 12px;width: 250px;line-height: 58px;margin-left: 30px">
+                        建议尺寸：468 * 340
+                    </li>
+                </ul>
+            </el-form-item>
+            <el-form-item label="排序">
+                <el-input v-model="form.sort" style="width: 500px" type="number"></el-input>
+            </el-form-item>
+            <el-form-item label="是否推荐">
+                <el-radio v-model="form.is_recommend" label="1">是</el-radio>
+                <el-radio v-model="form.is_recommend" label="2">否</el-radio>
+            </el-form-item>
+            <el-form-item label="是否显示">
+                <el-radio v-model="form.status" label="1">是</el-radio>
+                <el-radio v-model="form.status" label="2">否</el-radio>
+            </el-form-item>
+            <el-form-item label="seo标题">
+                <el-input v-model="form.seo_title" style="width: 500px"></el-input>
+            </el-form-item>
+            <el-form-item label="seo描述">
+                <el-input v-model="form.seo_desc" style="width: 500px"></el-input>
+            </el-form-item>
+            <el-form-item label="seo关键词">
+                <el-input v-model="form.seo_keywords" style="width: 500px"></el-input>
+            </el-form-item>
+            <el-form-item label="">
+                <el-button @click="goBack" size="small">取 消</el-button>
+                <el-button type="primary" @click="cateAddSubmit('ruleForm')" size="small" :loading="loading">确 定</el-button>
+            </el-form-item>
+        </el-form>
+
+        <el-dialog title="" :visible.sync="dialogVisible" width="1200px" class="image-check-dialog">
+            <file-select :need-select="true" @selected-img="selectedImg" @close-dialog="dialogVisible=false" :select-num="limitNum"></file-select>
+        </el-dialog>
+
+        <el-dialog title="" :visible.sync="bigDialogVisible" width="1200px" class="image-check-dialog">
+            <file-select :need-select="true" @selected-img="selectedBigImg" @close-dialog="bigDialogVisible=false" :select-num="limitNum"></file-select>
+        </el-dialog>
+    </el-card>
+</div>
+<script>
+
+    let pName = '{$pName}';
+    let pid = '{$pid}';
+
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                baseIndex: '/{:config("shop.backend_index")}/',
+                pName: pName,
+                dialogVisible: false,
+                bigDialogVisible: false,
+                limitNum: 1,
+                form: {
+                    pid: pid,
+                    level: 1,
+                    name: '',
+                    sub_name: '',
+                    desc: '',
+                    icon: '',
+                    big_pic: '',
+                    sort: 0,
+                    is_recommend: '2',
+                    status: '1',
+                    seo_title: '',
+                    seo_desc: '',
+                    seo_keywords: ''
+                },
+                loading: false,
+                rules: {
+                    name: [
+                        { required: true, message: '请输入分类名称'}
+                    ],
+                    icon: [
+                        { required: true, message: '请上传图标'}
+                    ]
+                }
+            }
+        },
+        mounted() {
+
+        },
+        methods: {
+            // 提交添加分类
+            cateAddSubmit(formName) {
+                this.$refs[formName].validate(async(valid) => {
+                    if (valid) {
+                        this.loading = true
+                        let res = await request.post(this.baseIndex + 'goodsCate/add', this.form)
+                        this.loading = false
+                        if (res.code == 0) {
+                            this.$message.success(res.msg)
+                            setTimeout(() => {
+                                window.location.href = this.baseIndex + 'goodsCate/index'
+                            }, 500)
+                        } else {
+                            this.$message.error(res.msg)
+                        }
+                    }
+                });
+            },
+            // 显示选择大图
+            showImage() {
+                this.dialogVisible = true
+            },
+            showImageBig() {
+                this.bigDialogVisible = true
+            },
+            goBack() {
+                history.go(-1)
+            },
+            // 选择的icon
+            selectedImg(item) {
+                this.form.icon = item[0].url
+                this.dialogVisible = false
+            },
+            // 选择的大图
+            selectedBigImg(item) {
+                this.form.big_pic = item[0].url
+                this.bigDialogVisible = false
+            },
+            // 移除图片
+            removeImg() {
+                this.form.big_pic = ''
+            },
+            // 移除图标
+            removeIcon() {
+                this.form.icon = ''
+            }
+        }
+    })
+</script>
+<style>
+    .img-list {
+        height: 60px;
+        padding-left: 0;
+        margin-top: 0;
+    }
+    .img-list li:first-child {
+        margin-left: 0;
+    }
+    .img-list li {
+        width: 58px;
+        height: 58px;
+        float: left;
+        margin-left: 5px;
+        cursor: pointer;
+        position: relative;
+    }
+    .addImg {
+        height: 56px;
+        width: 56px;
+        line-height: 56px;
+        text-align: center;
+        border: 1px dashed rgb(221, 221, 221);
+    }
+    ul li {list-style: none}
+    .image-check-dialog .el-dialog__header {display: none}
+    .image-check-dialog .el-dialog__body {padding: 0;}
+    .img-list .img-tools {
+        position: absolute;
+        width: 58px;
+        height: 15px;
+        line-height: 15px;
+        text-align: center;
+        top: 43px;
+        background: rgba(0, 0, 0, 0.6);
+        cursor: pointer;
+    }
+</style>
+</body>
+</html>

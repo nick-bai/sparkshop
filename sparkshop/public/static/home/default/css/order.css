@@ -1,0 +1,427 @@
+.footer-area {
+    background: #fff;
+}
+
+.copy-right-area {
+    background: #fff;
+}
+
+.order_container {
+    min-height: 915px;
+    width: 1226px;
+    background: #fff;
+    margin: 20px auto;
+}
+
+.checkout-detail {
+    position: relative;
+    padding: 48px 0 0;
+}
+
+.checkout-detail .address-header {
+    margin-left: 20px;
+}
+
+.address-header .header-title {
+    color: #333;
+    font-size: 18px;
+    line-height: 20px;
+}
+
+.address-list {
+    padding: 20px 20px;
+}
+
+.address-list .address-item {
+    display: inline-block;
+    width: 268px;
+    height: 178px;
+    border: 1px solid #e0e0e0;
+    cursor: pointer;
+    position: relative;
+    margin-right: 17px;
+    margin-bottom: 20px;
+    vertical-align: top;
+    -webkit-transition: all .4s ease;
+    transition: all .4s ease;
+}
+
+.address-list .address-info {
+    line-height: 22px;
+    color: #757575;
+    padding: 15px 24px 0;
+}
+
+.address-list .name {
+    font-size: 18px;
+    color: #333;
+    line-height: 30px;
+    margin-bottom: 10px;
+}
+
+.address-list .address-con span {
+    display: inline-block;
+    margin-right: 3px;
+    word-wrap: break-word;
+}
+
+.address-list .address-con .info {
+    width: 100%;
+}
+
+.address-list .address-action {
+    text-align: right;
+    position: absolute;
+    right: 24px;
+    bottom: 10px;
+    opacity: 1;
+    line-height: 22px;
+    color: #757575;
+}
+
+.address-list .address-action span {
+    color: #e93323;
+    margin-left: 10px;
+}
+
+.address-list .active {
+    border: 1px solid #e93323;
+}
+
+.address-list .active::before {
+    content: "";
+    width:0;
+    height: 0;
+    border:30px solid transparent;
+    border-right:30px solid #e93323;
+    transform: rotate(135deg);
+    position: absolute;
+    right: -31px;
+    top: -31px;
+    cursor: pointer;
+}
+.address-list .active::after {
+    content: "默认";
+    width: 40px;
+    height: 37px;
+    color: #FFF;
+    transform: rotate(45deg);
+    position: absolute;
+    right: -6px;
+    top: 7px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.address-list .add-desc {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate3d(-50%, -50%, 0);
+    transform: translate3d(-50%, -50%, 0);
+    color: #b0b0b0;
+}
+
+.goods-list {
+    padding: 5px 0;
+}
+
+.goods-list .good-item {
+    position: relative;
+    padding: 15px 10px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.goods-list .good-item .item-desc {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    line-height: 1;
+    color: #424242;
+    vertical-align: middle;
+}
+
+.goods-list .good-item .good-img {
+    width: 30px;
+    height: 30px;
+    margin: 0 10px 0 0;
+}
+
+.goods-list .good-item .good-name {
+    width: 650px !important;
+}
+
+.goods-list .good-item .item-desc {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    line-height: 1;
+    color: #424242 !important;
+    vertical-align: middle;
+    height: 40px;
+}
+
+.goods-list .good-item .good-price {
+    width: 150px;
+    text-align: center;
+}
+
+.goods-list .good-item .good-status {
+    width: 100px;
+    text-align: center;
+}
+
+.goods-list .good-item .good-total {
+    width: 190px;
+    text-align: right;
+    color: #e93323 !important;
+}
+
+.checkout-detail .detail-section {
+    position: relative;
+    padding: 0 24px;
+}
+
+.checkout-detail .detail-section .section-options .options-desc {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.checkout-detail .detail-section .section-options .options-header {
+    width: 150px;
+}
+
+.checkout-detail .detail-section .section-options .options-header .title {
+    color: #333;
+    font-size: 18px;
+    line-height: 38px;
+}
+
+.checkout-detail .detail-section .section-options .options-desc {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.checkout-detail .detail-section .section-options .options-list {
+    width: 960px;
+}
+
+.checkout-detail .detail-section .section-options .options-list .options-item {
+    display: inline-block;
+    height: 38px;
+    line-height: 38px;
+    margin-right: 14px;
+    border: 1px solid #fff;
+    color: #333;
+}
+
+.checkout-detail .detail-section .section-options .options-list .selected {
+    border-color: #fff;
+    color: #e93323;
+}
+
+.checkout-detail .detail-section .section-options {
+    padding: 25px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.pay_way {
+    height: 40px !important;
+    width: 100px !important;
+    line-height: 40px !important;
+    text-align: center;
+    border: 1px solid #e0e0e0 !important;
+    cursor: pointer;
+}
+
+.pay_selected {
+    color: #e93323 !important;
+    border: 1px solid #e93323 !important;
+}
+
+.cell_card {
+    width: 165px;
+    height: 24px;
+    background: url(/default/static/image/quan.png) 0 0/100% 100% no-repeat;
+    font-size: 13px;
+    color: #fff;
+    line-height: 24px;
+    margin-left: 30px;
+    float: left;
+}
+
+.options-body {
+    height: 30px;
+}
+
+.cell_card div {
+    float: left;
+}
+
+.cell-left {
+    width: 65px;
+    text-align: center;
+}
+
+.cell-right {
+    width: 100px;
+    color: #E9332D;
+    text-align: center;
+}
+
+.checkout-detail .count-detail {
+    position: relative;
+    min-height: 200px;
+    padding: 20px 0;
+    margin: 0 48px;
+    min-width: 250px;
+    float: right;
+}
+
+.checkout-detail .count-detail .section-bill .bill-item {
+    position: relative;
+    padding-left: 126px;
+    line-height: 2;
+    text-align: right;
+}
+
+.checkout-detail .count-detail .section-bill .bill-item .bill-name {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 126px;
+    white-space: nowrap;
+    color: #757575;
+}
+
+.checkout-detail .count-detail .section-bill .bill-item .bill-money {
+    color: #E9332D;
+}
+
+.checkout-detail .count-detail .section-bill .bill-item {
+    position: relative;
+    padding-left: 126px;
+    line-height: 2;
+    text-align: right;
+    margin: 10px 0 0;
+}
+
+.checkout-detail .count-detail .section-bill .bill-item .bill-money em {
+    font-style: normal;
+}
+
+.checkout-detail .count-detail .section-bill .total-price em {
+    font-weight: 600;
+    font-size: 30px;
+    line-height: 1;
+}
+
+.checkout-detail .footer-detail {
+    padding: 20px 48px;
+    border-top: 2px solid #f5f5f5;
+    clear: both;
+}
+
+.checkout-detail .footer-detail .footer-address {
+    float: left;
+}
+
+.checkout-detail .footer-detail .footer-address .selecter-address {
+    line-height: 20px;
+    color: #424242;
+}
+
+.submit-order {
+    float: right;
+    width: 158px;
+    height: 38px;
+    padding: 0;
+    margin: 0;
+    font-size: 14px;
+    line-height: 38px;
+    text-align: center;
+    color: #fff;
+    cursor: pointer;
+    -webkit-transition: all .4s;
+    transition: all .4s;
+    background: #E9332D;
+}
+
+.layui-layer-title {
+    border-bottom: none !important;
+}
+
+.goods-rule {
+    margin-top: 10px;color:#757575;position: relative;top: 10px;
+}
+.address-name, .address-desc {
+    color: #757575;
+}
+.pay-box {
+    height: 550px;
+    width: 550px;
+    background: #fff;
+    padding: 20px 50px;
+}
+.pay-box .header {
+    height: 60px;
+    width: 100%;
+    font-size: 20px;
+    font-weight: 500;
+    text-align: center;
+    line-height: 60px;
+    color: #000;
+}
+.pay-box .qrcode {
+    height: 250px;
+    width: 250px;
+    margin: 0 auto;
+    margin-top: 20px;
+    border: 1px solid #e2e2e2;
+    padding: 20px;
+}
+.goods-title {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    line-height: 1;
+    color: #757575 !important;
+    vertical-align: middle;
+    margin-top: 20px;
+    text-align: center;
+    font-weight: 500;
+    font-size: 18px;
+}
+.order-price {
+    font-size: 18px;
+    font-weight: 500;
+    text-align: center;
+    margin-top: 10px;
+    color: #e93323;
+}
+.notice {
+    height: 30px;
+    width: 100%;
+    font-size: 12px;
+    color: #FFB800;
+    margin-top: 20px;
+}
+.payed {
+    width: 150px;
+    height: 40px;
+    text-align: center;
+    line-height: 40px;
+    background: #e93323;
+    color: #fff;
+    margin: 0 auto;
+    margin-top: 10px;
+    cursor: pointer;
+}

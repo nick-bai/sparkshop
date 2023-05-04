@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh-CN" xml:lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>填写订单信息</title>
+    <link rel="stylesheet" href="/static/js/layui/css/layui.css">
+    <link rel="stylesheet" href="{__CSS__}/bootstrap.min.css">
+    <link rel="stylesheet" href="{__CSS__}/style.css">
+    <link rel="stylesheet" href="{__CSS__}/iconfont.css">
+    <link rel="stylesheet" href="{__CSS__}/order.css">
+    <script src="{__JS__}/jquery.min.js"></script>
+    <script src="{__JS__}/bootstrap.bundle.min.js"></script>
+    <script src="{__JS__}/meanmenu.min.js"></script>
+    <script src="{__JS__}/notify_stand.js"> </script>
+</head>
+<body style="background: #f9f9f9;">
+{include file="public/header_no_nav"}
+<div class="order_container">
+    <div class="checkout-detail">
+        <div class="address-header">
+            <span class="header-title">收货地址</span>
+        </div>
+        <div class="address-list">
+            <container id="address-list"></container>
+            <div class="address-item">
+                <div class="add-desc">
+                    <span style="font-size: 20px">+</span>
+                    <span>添加新地址</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="address-header">
+            <span class="header-title">商品列表</span>
+        </div>
+        <div class="detail-section">
+            <div class="goods-list">
+                {foreach name="buy_goods" item="vo"}
+                <div class="good-item">
+                    <div class="item-desc good-img">
+                        <img src="{$vo['ruleInfo']['image']}">
+                    </div>
+                    <div class="item-desc good-name">
+                        <span style="color:#424242 !important;">{$vo['goods']['name']}</span><br/>
+                        <span class="goods-rule">{$vo['ruleInfo']['sku']}</span>
+                    </div>
+                    <div class="item-desc price-box">
+                        <div class="item-desc good-price">
+                            {:number_format($vo['ruleInfo']['price'], 2)}元 x {$vo['num']}{$vo['goods']['unit']}
+                        </div>
+                        <div class="item-desc good-status"></div>
+                        <div class="item-desc good-total" style="font-weight: 500">
+                            {:number_format($vo['ruleInfo']['price'] * $vo['num'], 2)}元
+                        </div>
+                    </div>
+                </div>
+                {/foreach}
+            </div>
+        </div>
+        {if $type == 1}
+        <div class="detail-section">
+            <div class="section-options section-shipment">
+                <div class="options-desc options-header">
+                    <div class="title">优惠券</div>
+                </div>
+                <div class="options-desc options-body">
+                    <div class="options-list" style="height: 50px">
+                        <a href="javascript:;" style="position: absolute;color:#e93323;" onclick="checkCoupon()">选择</a>
+                        <div id="coupon_list">
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        {/if}
+        <div class="detail-section">
+            <div class="section-options section-shipment">
+                <div class="options-desc options-header">
+                    <div class="title">支付方式</div>
+                </div>
+                <div class="options-desc">
+                    <div class="options-list">
+                        {if isset($payWayMap['wechat_pay']) && $payWayMap['wechat_pay'] == 1}
+                        <div class="options-item pay_way pay_selected" data-way="wechat_pay"><i class="iconfont icon-iconfontweixin"></i> 微信</div>
+                        {/if}
+                        {if isset($payWayMap['alipay']) && $payWayMap['alipay'] == 1}
+                        <div class="options-item pay_way {if !isset($payWayMap['wechat_pay']) || $payWayMap['wechat_pay'] == 2}pay_selected{/if}" data-way="alipay"><i class="iconfont icon-alipay"></i> 支付宝</div>
+                        {/if}
+                        {if $pay_way == ''}
+                        <span style="font-size: 14px;color: #FF5722;top: -2px;position: relative">暂无可用的支付方式</span>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-section count-detail">
+            <div class="section-bill">
+                <div class="bill-item">
+                    <div class="bill-name">商品件数：</div>
+                    <div class="bill-money" id="goods-num"></div>
+                </div>
+                <div class="bill-item">
+                    <div class="bill-name">商品总价：</div>
+                    <div class="bill-money" id="goods-price"></div>
+                </div>
+                {if $type == 1}
+                <div class="bill-item">
+                    <div class="bill-name">优惠券抵扣：</div>
+                    <div class="bill-money" id="goods-coupon"></div>
+                </div>
+                {if $vipConf['user_level_open'] ==1}
+                <div class="bill-item">
+                    <div class="bill-name">会员折扣：</div>
+                    <div class="bill-money" id="goods-vip">0</div>
+                </div>
+                {/if}
+                {/if}
+                <div class="bill-item">
+                    <div class="bill-name">运费：</div>
+                    <div class="bill-money" id="goods-postage"></div>
+                </div>
+                <div class="bill-item total-price">
+                    <div class="bill-name">应付总额：</div>
+                    <div class="bill-money">
+                        <em id="goods-real-pay"></em>元
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-section footer-detail clearfix">
+            <div class="footer-address">
+                <div class="selecter-address">
+                    <div class="address-name"></div>
+                    <div class="address-desc"><span></span></div>
+                </div>
+            </div>
+            <div class="submit-order">立即下单</div>
+        </div>
+    </div>
+</div>
+
+<div id="pay-box" style="display: none">
+    <div class="pay-box">
+        <div class="header">请使用<span>支付宝</span>扫描下方二维码</div>
+        <div id="qrcode" class="qrcode"></div>
+        <div class="goods-title"></div>
+        <div class="order-price"></div>
+        <div class="payed">我已支付</div>
+        <div class="notice">提示：未完成支付前，请勿关闭此窗口。支付完成后可以点击上方我已支付按钮。</div>
+    </div>
+</div>
+
+<script id="addressItem" type="text/html">
+    {{#  layui.each(d.data, function(index, item) { }}
+    <div class="address-item {{#  if(item.is_default == 1){ }}active{{#  } }}" data-id="{{item.id}}" data-name="{{ item.real_name }}" data-phone="{{ item.phone }}" data-province="{{ item.province }}" data-city="{{ item.city }}" data-address="{{ item.province }}{{ item.city }}{{ item.country }}{{ item.detail }}">
+        <div class="address-info">
+            <div class="name">{{ item.real_name }}<span style="color: rgb(176, 176, 176);"></span></div>
+            <div class="tel">{{ item.phone }}</div>
+            <div class="address-con">
+                <span>{{ item.province }}</span><span>{{ item.city }}</span><span>{{ item.country }}</span>
+                <span class="info">{{ item.detail }}</span>
+            </div>
+            <div class="address-action show-action">
+                <span onclick="editAddress(this)" data-id="{{item.id}}"><i class="layui-icon layui-icon-edit"></i></span>
+                <span onclick="removeAddress(this)" data-id="{{item.id}}"><i class="layui-icon layui-icon-delete"></i></span>
+            </div>
+        </div>
+    </div>
+    {{#  }); }}
+</script>
+
+<!-- 底部 -->
+{include file="public/footer"}
+<div class="go-top">
+    <i class="iconfont icon-yooxi"></i>
+    <i class="iconfont icon-yooxi"></i>
+</div>
+<script src="{__JS__}/qrcode.min.js"></script>
+<script src="{__JS__}/custom.js"></script>
+<script src="/static/js/layui/layui.js"></script>
+<script>
+    let formatOrderParam = {$format_order_param|raw};
+    let orderParam = {goods: {$trail|raw}, pay_way: '{$pay_way}', coupon: 0, address_id: 0, cart_id: '{$cart_ids}', orderType: {$type}, seckill_id: {$seckill_id}, seckill_goods_id: {$seckill_goods_id}};
+</script>
+<script src="{__JS__}/order.js"></script>
+</body>
+</html>

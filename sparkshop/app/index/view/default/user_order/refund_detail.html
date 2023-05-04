@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="zh-CN" xml:lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>退款进度</title>
+    <link rel="stylesheet" href="{__CSS__}/bootstrap.min.css">
+    <link rel="stylesheet" href="{__CSS__}/style.css">
+    <link rel="stylesheet" href="{__CSS__}/iconfont.css">
+    <link rel="stylesheet" href="/static/js/layui/css/layui.css">
+    <link rel="stylesheet" href="{__CSS__}/user.css">
+    <script src="{__JS__}/jquery.min.js"></script>
+    <script src="{__JS__}/bootstrap.bundle.min.js"></script>
+    <script src="{__JS__}/meanmenu.min.js"></script>
+    <script src="/static/js/layui/layui.js"></script>
+    <script src="{__JS__}/notify_stand.js"></script>
+</head>
+<body style="background: #f9f9f9;">
+{include file="public/header_no_nav"}
+<div class="user_container">
+    <div style="color: #757575">
+        <a href="/">首页</a> > 用户中心
+    </div>
+    <div class="user_content">
+        {include file="public/user_menu"}
+        <div class="content_detail" style="padding: 20px 20px;">
+            <h4 style="color: #757575;font-weight: 600">退款进度</h4>
+            <div class="actions" style="float: right">
+                <div class="status-btn-box">
+                    <a title="退款进度" class="btn-small btn-line-gray" style="margin-left: 10px;margin-top: 0" href="/user">返回</a>
+                </div>
+            </div>
+            <ul class="goods-list" style="margin-top: 20px">
+                {foreach name="detail" item="vo"}
+                <li>
+                    <div class="figure figure-thumb">
+                        <a href="/index/goods/{$vo['goods_id']}" target="_blank">
+                            <img src="{$vo['logo']}" width="80" height="80" alt="{$vo['goods_name']}">
+                        </a>
+                    </div>
+                    <div class="order_text">
+                        <p class="name" style="margin: 0">
+                            <a href="/index/goods/{$vo['goods_id']}" target="_blank" class="order_info">
+                                {$vo['goods_name']}
+                                {if !empty($vo['rule'])}{$vo['rule']}{/if}
+                            </a>
+                        </p>
+                        <p class="price" style="color:#E9332D"> {:number_format($vo['price'], 2)}元 × {$vo['cart_num']} </p>
+                    </div>
+                </li>
+                {/foreach}
+            </ul>
+
+            <div class="checkout-detail" style="height: 260px;background: #FAFAFA;">
+                <div class="detail-section count-detail">
+                    <div class="section-bill">
+                        <div class="bill-item">
+                            <div class="bill-name">商品件数：</div>
+                            <div class="bill-money" id="goods-num">{$info['total_num']}件</div>
+                        </div>
+                        <div class="bill-item">
+                            <div class="bill-name">商品总价：</div>
+                            <div class="bill-money" id="goods-price">{:number_format($info['order_price'], 2)}元</div>
+                        </div>
+                        {if $info['type'] == 1}
+                        <div class="bill-item">
+                            <div class="bill-name">优惠券抵扣：</div>
+                            <div class="bill-money" id="goods-coupon">-{:number_format($info['coupon_amount'], 2)}元
+                            </div>
+                        </div>
+                        {if $vipConf['user_level_open'] == 1}
+                        <div class="bill-item">
+                            <div class="bill-name">会员折扣：</div>
+                            <div class="bill-money" id="goods-vip">-{:number_format($info['vip_discount'], 2)}元
+                            </div>
+                        </div>
+                        {/if}
+                        {/if}
+                        <div class="bill-item">
+                            <div class="bill-name">运费：</div>
+                            <div class="bill-money" id="goods-postage">{:number_format($info['pay_postage'], 2)}元</div>
+                        </div>
+                        <div class="bill-item">
+                            <div class="bill-name">退款金额：</div>
+                            <div class="bill-money" id="goods-refund">-{:number_format($info['refunded_price'], 2)}元</div>
+                        </div>
+                        <div class="bill-item total-price">
+                            <div class="bill-name">实付总额：</div>
+                            <div class="bill-money">
+                                <em id="goods-real-pay">{:number_format($info['pay_price'], 2)}</em>元
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 退款步骤 -->
+            {if $order['refund_type'] == 1}
+            <div id="refund-money-box">
+                <div class="order-progress" style="margin-top: 20px;margin-bottom: 0px">
+                    <ol class="progress-list clearfix">
+                        <li class="step step-done step-first" style="flex:0 276px">
+                            <div class="order_progress">
+                                <span class="text">
+                                    1、申请仅退款
+                                </span>
+                            </div>
+                        </li>
+                        <li class="step {if $order['step'] >= 2}step-done{/if}" style="flex:0 276px">
+                            <div class="order_progress">
+                                <span class="text">
+                                    2、平台审核
+                                </span>
+                            </div>
+                        </li>
+                        <li class="step {if $order['step'] >= 3}step-done{/if} step-last" style="flex:0 276px">
+                            <div class="order_progress">
+                                <span class="text">
+                                    3、退款完毕
+                                </span>
+                            </div>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+            {else/}
+            <div id="refund-goods-box">
+                <div class="order-progress" style="margin-top: 20px;margin-bottom: 0px">
+                    <ol class="progress-list clearfix">
+                        <li class="step step-done step-first" style="flex:0 276px">
+                            <div class="order_progress">
+                                <span class="text">
+                                    1、申请退货退款
+                                </span>
+                            </div>
+                        </li>
+                        <li class="step" style="flex:0 276px">
+                            <div class="order_progress {if $order['step'] >= 2}step-done{/if}">
+                                <span class="text">
+                                    2、平台审核
+                                </span>
+                            </div>
+                        </li>
+                        <li class="step " style="flex:0 276px">
+                            <div class="order_progress {if $order['step'] >= 3}step-done{/if}">
+                                <span class="text">
+                                    3、用户退货
+                                </span>
+                            </div>
+                        </li>
+                        <li class="step " style="flex:0 276px">
+                            <div class="order_progress {if $order['step'] >= 4}step-done{/if}">
+                                <span class="text">
+                                    4、平台审核
+                                </span>
+                            </div>
+                        </li>
+                        <li class="step " style="flex:0 276px">
+                            <div class="order_progress {if $order['step'] >= 5}step-done{/if} step_last">
+                                <span class="text">
+                                    5、退款完毕
+                                </span>
+                            </div>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+            {/if}
+            {if $order['step'] == 3 && $order['refund_type'] == 2}
+            <div class="am-alert">管理员已确认，请尽快完成退货！<button type="button" class="layui-btn layui-btn-primary layui-border-red layui-btn-sm" id="do-refund">立即退货</button></div>
+            <div class="am-alert-warning">退货地址： 收件人：{$address['receive_user']}，电话：{$address['receive_phone']}，地址：{$address['receive_address']}</div>
+            {/if}
+            <div class="layui-container">
+                <div class="layui-row">
+                    <div style="width: 920px">
+                        <table class="layui-table">
+                            <thead>
+                            <tr>
+                                <th colspan="2">申请信息</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td style="width: 100px">退款类型</td>
+                                <td>{$order['refund_type_txt']}</td>
+                            </tr>
+                            <tr>
+                                <td style="width: 100px">当前步骤</td>
+                                <td style="color: #FF5722">{$order['step_txt']}</td>
+                            </tr>
+                            <tr>
+                                <td style="width: 100px">申请原因</td>
+                                <td>{$order['refund_explain']}</td>
+                            </tr>
+                            <tr>
+                                <td style="width: 100px">退款凭证</td>
+                                <td>
+                                    {foreach name="$order['refund_img']" item="vo"}
+                                    <img src="{$vo}" width="80px" height="80px"/>
+                                    {/foreach}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="width: 100px">退货数量</td>
+                                <td>{$order['refund_num']}</td>
+                            </tr>
+                            <tr>
+                                <td style="width: 120px">申请退款金额</td>
+                                <td style="color: #FF5722">￥{$order['refund_price']}</td>
+                            </tr>
+                            <tr>
+                                <td style="width: 120px">实际退款金额</td>
+                                <td style="color: #FF5722">￥{$order['refunded_price']}</td>
+                            </tr>
+                            <tr>
+                                <td style="width: 100px">退款说明</td>
+                                <td>{$order['remark']}</td>
+                            </tr>
+                            <tr>
+                                <td style="width: 100px">申请时间</td>
+                                <td>{$order['create_time']}</td>
+                            </tr>
+                            <tr>
+                                <td style="width: 100px">处理时间</td>
+                                <td>{if !empty($order['refunded_time'])}{$order['refunded_time']}{/if}</td>
+                            </tr>
+                            <tr>
+                                <td style="width: 100px">是否取消</td>
+                                <td>{if $order['is_cancel'] eq 1}是{else/}否{/if}</td>
+                            </tr>
+                            <tr>
+                                <td style="width: 100px">审批状态</td>
+                                <td style="color: #FF5722">{$order['refund_status_txt']}</td>
+                            </tr>
+                            <tr>
+                                <td style="width: 100px">拒绝原因</td>
+                                <td>{$order['refund_reason']}</td>
+                            </tr>
+                            <tr>
+                                <td style="width: 100px">快递</td>
+                                <td>{$order['refund_express_name']}</td>
+                            </tr>
+                            <tr>
+                                <td style="width: 100px">快递单号</td>
+                                <td>{$order['refund_express']}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{include file="public/footer"}
+
+<div id="express-box" style="display: none;padding: 0 10px">
+    <div class="am-alert-warning">退货地址： 收件人：{$address['receive_user']}，电话：{$address['receive_phone']}，地址：{$address['receive_address']}</div>
+    <form class="layui-form" action="">
+        <input type="hidden" name="id" value="{$order['id']}"/>
+        <div class="layui-form-item">
+            <label class="layui-form-label" style="width: 100px">快递名称</label>
+            <div class="layui-input-block" style="margin-left: 100px">
+                <input type="text" name="refund_express_name" required  lay-verify="required" placeholder="快递名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label" style="width: 100px">快递单号</label>
+            <div class="layui-input-block" style="margin-left: 100px">
+                <input type="text" name="refund_express" required  lay-verify="required" placeholder="快递单号" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn layui-btn-normal" lay-submit lay-filter="refund_express">立即提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="go-top">
+    <i class="iconfont icon-yooxi"></i>
+    <i class="iconfont icon-yooxi"></i>
+</div>
+<script src="{__JS__}/custom.js"></script>
+<script>
+    layui.use(['layer', 'form'], function () {
+
+        var layer = layui.layer;
+        var form = layui.form;
+
+        $(function () {
+
+            $('#do-refund').click(function () {
+
+                layer.open({
+                    type: 1,
+                    title: '退货信息',
+                    area: ['700px', '300px'],
+                    content: $('#express-box')
+                });
+            });
+        })
+
+        form.on('submit(refund_express)', function (data) {
+
+            $.post('/index/userOrder/refundExpress', data.field, function (res) {
+                if (res.code == 0) {
+                    notify.success(res.msg);
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 1000)
+                } else {
+                    notify.error(res.msg);
+                }
+            }, 'json');
+            return false;
+        });
+    });
+</script>
+</body>
+</html>

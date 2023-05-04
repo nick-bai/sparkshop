@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="zh-CN" xml:lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>用户中心</title>
+    <link rel="stylesheet" href="{__CSS__}/bootstrap.min.css">
+    <link rel="stylesheet" href="{__CSS__}/style.css">
+    <link rel="stylesheet" href="{__CSS__}/iconfont.css">
+    <link rel="stylesheet" href="{__CSS__}/user.css">
+    <link rel="stylesheet" href="/static/js/layui/css/layui.css">
+    <script src="{__JS__}/jquery.min.js"></script>
+    <script src="/static/js/layui/layui.js"></script>
+    <script src="{__JS__}/bootstrap.bundle.min.js"></script>
+    <script src="{__JS__}/meanmenu.min.js"></script>
+</head>
+<body style="background: #f9f9f9;">
+{include file="public/header_no_nav"}
+<div class="user_container">
+    <div style="color: #757575">
+        <a href="/">首页</a> > 用户中心
+    </div>
+    <div class="user_content">
+        {include file="public/user_menu"}
+        <div class="content_detail">
+            <div class="uc-box">
+                <ul class="filter-list">
+                    <li class="first active"  style="border-left: none">
+                        <a href="javascript:void(0);" data-status="0" onclick="orderStatus(this)">全部订单</a>
+                    </li>
+                    <li class="">
+                        <a href="javascript:void(0);" data-status="2" onclick="orderStatus(this)">待支付</a>
+                    </li>
+                    <li class="">
+                        <a href="javascript:void(0);" data-status="3" onclick="orderStatus(this)">待发货</a>
+                    </li>
+                    <li class="">
+                        <a href="javascript:void(0);" data-status="4,5" onclick="orderStatus(this)">待收货</a>
+                    </li>
+                    <li class="">
+                        <a href="javascript:void(0);" data-status="6" onclick="orderStatus(this)">已完成</a>
+                    </li>
+                    <li class="">
+                        <a href="javascript:void(0);" data-status="7,8" onclick="orderStatus(this)">已关闭/取消</a>
+                    </li>
+                </ul>
+                <div class="search-form clearfix">
+                    <input type="search" name="keywords" autocomplete="off" placeholder="输入订单号" class="search-text" id="search-order">
+                    <button class="search_btn">搜索</button>
+                </div>
+                <div class="user_order_list" id="user_order_list">
+
+                </div>
+                <div id="pages" style="float: right"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 底部 -->
+{include file="public/footer"}
+<div class="go-top">
+    <i class="iconfont icon-yooxi"></i>
+    <i class="iconfont icon-yooxi"></i>
+</div>
+
+<script id="orderEmpty" type="text/html">
+    <div style="margin: 200px auto;width: 100px;height: 100px;font-size: 20px;color: #ddd">
+        <i class="layui-icon layui-icon-cart-simple" style="font-size: 30px;margin-left: 20px"></i><br/>
+        暂无订单
+    </div>
+</script>
+
+<script id="orderList" type="text/html">
+    {{#  layui.each(d.data, function(index, item){ }}
+    <li class="uc-order-item uc-order-item-finish">
+        {{# if (item.status == 2) { }}
+        <div class="order-remove" onclick="delOrder({{ item.id }})">
+            <img src="{__IMG__}/trash.png" alt="垃圾桶">
+        </div>
+        {{# } }}
+        <div class="order-detail">
+            <div class="order-summary">
+                <div class="order-status">{{ item.status_txt }}</div>
+            </div>
+            <table class="order-detail-table">
+                <thead>
+                <tr>
+                    <th class="col-main">
+                        <p class="caption-info">
+                            下单时间：{{ item.create_time }}
+                            <span class="sep">|</span>
+                            订单号：
+                            <a>
+                                {{ item.order_no }}
+                            </a>
+                            <span class="sep">|</span>
+                            {{ item.pay_txt }}
+                        </p>
+                    </th>
+                    <th class="col-sub">
+                        <p class="caption-price">
+                            实付金额：
+                            <span class="num">{{ item.pay_price }}</span>元
+                        </p>
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                {{#  layui.each(item.detail, function(key, val){ }}
+                <tr>
+                    <td class="order-items">
+                        <ul class="goods-list">
+                            <li>
+                                <div class="figure figure-thumb">
+                                    <a href="/index/goods/{{ val.goods_id }}" target="_blank">
+                                        <img src="{{ val.logo }}" width="80" height="80" alt="{{ val.goods_name }}">
+                                    </a>
+                                </div>
+                                <div class="order_text">
+                                    <p class="name" style="margin: 0">
+                                        <a href="/index/goods/{{ val.goods_id }}" target="_blank" class="order_info">
+                                            {{ val.goods_name }} {{# if (val.rule && val.rule != 0) { val.rule } }}
+                                        </a>
+                                    </p>
+                                    <p class="price" style="color:#e93323">
+                                        {{ val.price }}元 × {{ val.cart_num }} {{#if (item.refund_detail_id == val.id) { }}<span style="color:#31BDEC">【退款审批中】</span>{{# } }}
+                                    </p>
+                                </div>
+                            </li>
+                        </ul>
+                    </td>
+                    <td class="order-actions">
+                        {{# if (item.status == 3 && item.detail.length >= 2 && (item.refund_detail_id == 0) && item.refund_status == 0) { }}
+                        <a href="javascript:void(0)" class="btn-small btn-line-gray btn-contract order-btn" onclick="refund({{ val.id }})">
+                            商品退款/退货
+                        </a>
+                        {{# } }}
+                        {{# if (item.status == 6 && item.detail.length >= 2 && (item.refund_detail_id == 0) && item.refund_flag == 2) { }}
+                        <a href="javascript:void(0)" class="btn-small btn-line-gray btn-contract order-btn" onclick="refund({{ val.id }})">
+                            申请售后
+                        </a>
+                        {{# } }}
+                        {{# if (item.refund_detail_id == val.id) { }}
+                        <a href="javascript:void(0)" class="btn-small btn-line-gray btn-contract order-btn" onclick="cancelRefund({{ item.refund_id }})">
+                            取消退款
+                        </a>
+                        <a href="javascript:void(0)" class="btn-small btn-line-gray btn-contract order-btn" onclick="refundDetail({{ item.refund_id }})">
+                            退款进度
+                        </a>
+                        {{# } }}
+                    </td>
+                </tr>
+                {{#  }); }}
+                <tr style="border-top: 1px dashed #e0e0e0">
+                    <td class="order-bar" colspan="2">
+                        <span style="color:#757575;font-size: 12px;position: relative;top:15px;">操作提示：右侧操作按钮针对的整个订单的操作</span>
+                        {{# if (item.status == 2) { }}
+                        <a href="javascript:void(0)" class="btn-small btn-line-gray btn-contract order-btn" style="margin-left: 20px" onclick="goPay({{ item.id }})">
+                            去支付
+                        </a>
+                        {{# } }}
+                        {{# if (item.refund_status == 0 && item.status == 3 && item.refund_flag == 2) { }}
+                        <a href="javascript:void(0)" class="btn-small btn-line-gray btn-contract order-btn" style="margin-left: 20px" onclick="goRefund({{ item.id }})">
+                            订单退款/退货
+                        </a>
+                        {{# } }}
+                        {{# if (item.refund_status != 0 && item.refund_detail_id == 0) { }}
+                        <a href="javascript:void(0)" class="btn-small btn-line-gray btn-contract order-btn" style="margin-left: 20px" onclick="refundDetail({{ item.refund_id }})">
+                            退款进度
+                        </a>
+                        {{# } }}
+                        {{# if (item.refund_status == 1 && item.refund_detail_id == 0) { }}
+                        <a href="javascript:void(0)" class="btn-small btn-line-gray btn-contract order-btn" style="margin-left: 20px" onclick="cancelRefund({{ item.refund_id }})">
+                            取消退款
+                        </a>
+                        {{# } }}
+                        {{# if (item.status == 4) { }}
+                        <a href="javascript:void(0)" class="btn-small btn-line-gray btn-contract order-btn" style="margin-left: 20px" onclick="received({{ item.id }})">
+                            确认收货
+                        </a>
+                        {{# if (item.goods_type == 1) { }}
+                        <a href="javascript:void(0)" class="btn-small btn-line-gray btn-contract order-btn" style="margin-left: 20px" onclick="express({{ item.id }})">
+                            查看物流
+                        </a>
+                        {{# } }}
+                        {{# } }}
+                        {{# if (item.status == 2) { }}
+                        <a href="javascript:void(0)" class="btn-small btn-line-gray btn-contract order-btn" style="margin-left: 20px" onclick="cancel({{ item.id }})">
+                            取消订单
+                        </a>
+                        {{# } }}
+                        {{# if (item.status == 6 && item.refund_flag == 2 && item.refund_detail_id == 0) { }}
+                        <a href="javascript:void(0)" class="btn-small btn-line-gray btn-contract order-btn" style="margin-left: 20px" onclick="goRefund({{ item.id }})">
+                            申请售后
+                        </a>
+                        {{# } }}
+                        {{# if (item.status == 6 && (item.pay_status == 2 || item.pay_status == 4)) { }}
+                        <a href="javascript:void(0)" class="btn-small btn-line-gray btn-contract order-btn" style="margin-left: 20px" onclick="comment({{ item.id }})">
+                            评价
+                        </a>
+                        {{# } }}
+                        <a href="/detail/{{ item.id }}" class="btn-small btn-line-gray order-btn">
+                            订单详情
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </li>
+    {{#  }); }}
+</script>
+
+<div id="pay_way" style="display: none">
+    <form class="layui-form" action="">
+        <input type="hidden" name="order_id" id="order-id"/>
+        <div class="layui-form-item">
+            <label class="layui-form-label"  style="width: 100px">支付方式</label>
+            <div class="layui-input-block" style="margin-left: 100px">
+                {if isset($payWayMap['wechat_pay']) && $payWayMap['wechat_pay'] == 1}
+                <input type="radio" name="pay_way" value="wechat_pay" title="微信" checked>
+                {/if}
+                {if isset($payWayMap['alipay']) && $payWayMap['alipay'] == 1}
+                <input type="radio" name="pay_way" value="alipay" title="支付宝" {if !isset($payWayMap['wechat_pay']) || $payWayMap['wechat_pay'] == 2}checked{/if}>
+                {/if}
+                {if $pay_way == ''}
+                <span style="font-size: 14px;color: #FF5722;top: 9px;position: relative">暂无可用的支付方式</span>
+                {/if}
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn layui-btn-danger" lay-submit lay-filter="goPay">立即支付</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div id="pay-box" style="display: none">
+    <div class="pay-box">
+        <div class="header">请使用<span>支付宝</span>扫描下方二维码</div>
+        <div id="qrcode" class="qrcode"></div>
+        <div class="goods-title"></div>
+        <div class="order-price"></div>
+        <div class="payed">我已支付</div>
+        <div class="notice">提示：未完成支付前，请勿关闭此窗口。支付完成后可以点击上方我已支付按钮。</div>
+    </div>
+</div>
+
+<script src="{__JS__}/notify_stand.js"> </script>
+<script src="{__JS__}/qrcode.min.js"></script>
+<script src="{__JS__}/custom.js"></script>
+<script src="{__JS__}/user.js"></script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<el-form ref="form" :model="form" :rules="rules" label-width="80px" :key="formKey">
+  <el-row>
+    <el-col :span="12">
+      <el-form-item label="昵称" prop="nickname">
+        <el-input v-model="form.nickname"></el-input>
+      </el-form-item>
+    </el-col>
+    <el-col :span="12">
+      <el-form-item label="用户密码" prop="password">
+        <el-input v-model="form.password" type="password"></el-input>
+      </el-form-item>
+    </el-col>
+  </el-row>
+  <el-row>
+    <el-col :span="12">
+      <el-form-item label="手机号" prop="phone">
+        <el-input v-model="form.phone"></el-input>
+      </el-form-item>
+    </el-col>
+    <el-col :span="12">
+      <el-form-item label="注册时间" prop="register_time">
+        <el-date-picker
+                style="width: 100%"
+                v-model="form.register_time"
+                type="datetime"
+                value-format="yyyy-MM-dd">
+        </el-date-picker>
+      </el-form-item>
+    </el-col>
+  </el-row>
+  <el-row>
+    <el-col :span="12">
+      <el-form-item label="状态" prop="status">
+        <el-radio v-model="form.status" :label="1">启用</el-radio>
+        <el-radio v-model="form.status" :label="2">禁用</el-radio>
+      </el-form-item>
+    </el-col>
+    <el-col :span="12">
+      <el-form-item label="头像">
+        <ul class="img-list">
+          <li v-if="form.avatar">
+            <img :src="form.avatar" width="58px" height="58px" alt="图片">
+            <div class="img-tools">
+              <i class="el-icon-delete" style="font-size: 14px;color: #fff" @click="removeImg()"></i>
+            </div>
+          </li>
+          <li>
+            <div class="addImg" @click="showImage">
+              <i class="el-icon-plus"></i>
+            </div>
+          </li>
+        </ul>
+      </el-form-item>
+    </el-col>
+  </el-row>
+  <el-row>
+    <el-col :span="12">
+      <el-form-item label="邮箱">
+        <el-input v-model="form.email"></el-input>
+      </el-form-item>
+    </el-col>
+    <el-col :span="12">
+      <el-form-item label="真实姓名">
+        <el-input v-model="form.real_name"></el-input>
+      </el-form-item>
+    </el-col>
+  </el-row>
+  <el-row>
+    <el-col :span="12">
+      <el-form-item label="用户等级">
+        <el-select v-model="form.vip_level" placeholder="请选择用户等级" clearable style="width: 100%">
+          <el-option :label="item.title" :value="item.id" v-for="item in level" :key="item.id"></el-option>
+        </el-select>
+      </el-form-item>
+    </el-col>
+    <el-col :span="12">
+      <el-form-item label="用户分组">
+        <el-select v-model="form.group_id" placeholder="请选择用户分组" clearable style="width: 100%">
+          <el-option :label="item.name" :value="item.id" v-for="item in group" :key="item.id"></el-option>
+        </el-select>
+      </el-form-item>
+    </el-col>
+  </el-row>
+  <el-row>
+    <el-col :span="12">
+      <el-form-item label="来源">
+        <el-select v-model="form.source_id" placeholder="请选择来源" clearable style="width: 100%">
+          <el-option :label="item" :value="index" v-for="(item, index) in source" :key="index"></el-option>
+        </el-select>
+      </el-form-item>
+    </el-col>
+    <el-col :span="12">
+      <el-form-item label="生日">
+        <el-date-picker
+                style="width: 100%"
+                v-model="form.birthday"
+                type="date"
+                value-format="yyyy-MM-dd">
+        </el-date-picker>
+      </el-form-item>
+    </el-col>
+  </el-row>
+  <el-row>
+    <el-col :span="12">
+      <el-form-item label="身份证">
+        <el-input v-model="form.id_card"></el-input>
+      </el-form-item>
+    </el-col>
+    <el-col :span="12">
+      <el-form-item label="积分">
+        <el-input v-model="form.score" type="number"></el-input>
+      </el-form-item>
+    </el-col>
+  </el-row>
+  <el-row>
+    <el-col :span="24">
+      <el-form-item label="用户住址">
+        <el-input v-model="form.address" :rows="3" type="textarea"></el-input>
+      </el-form-item>
+    </el-col>
+  </el-row>
+
+</el-form>
+<span slot="footer" class="dialog-footer">
+    <el-button type="primary" @click="submitForm('form')" size="small">立即提交</el-button>
+</span>

@@ -1,0 +1,20 @@
+<el-form :model="form" :rules="rules" ref="ruleForm" label-width="80px">
+  <el-form-item label="友链标题" prop="name">
+    <el-input v-model="form.name"></el-input>
+  </el-form-item>
+  <el-form-item label="友链地址" prop="url">
+    <el-input v-model="form.url" placeholder="http://"></el-input>
+  </el-form-item>
+  <el-form-item label="打开方式">
+    <el-radio v-model="form.target" :label="1">新页面</el-radio>
+    <el-radio v-model="form.target" :label="2">本页面</el-radio>
+  </el-form-item>
+  <el-form-item label="状态">
+    <el-radio v-model="form.status" :label="1">启用</el-radio>
+    <el-radio v-model="form.status" :label="2">禁用</el-radio>
+  </el-form-item>
+</el-form>
+<div slot="footer" class="dialog-footer">
+  <el-button @click="dialogVisible = false" size="small">取 消</el-button>
+  <el-button type="primary" @click="optSubmit('ruleForm')" size="small" :loading="loading">确 定</el-button>
+</div>

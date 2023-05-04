@@ -1,0 +1,24 @@
+<el-table
+        :data="logTableData"
+        style="width: 100%">
+  <el-table-column
+          prop="id"
+          label="ID">
+  </el-table-column>
+  <el-table-column
+          prop="user_name"
+          label="领取人">
+  </el-table-column>
+  <el-table-column
+          prop="create_time"
+          label="领取时间">
+  </el-table-column>
+</el-table>
+<el-pagination
+        style="margin-top: 10px"
+        background
+        layout="->, prev, pager, next"
+        :page-size="logSearchForm.limit"
+        @current-change="handleLogPageChange"
+        :total="total">
+</el-pagination>

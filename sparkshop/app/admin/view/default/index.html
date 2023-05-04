@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{$title}管理后台</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+</head>
+<body>
+<div id="app">
+    <el-container>
+        <el-aside :width="menuWidth">
+            <el-container>
+                <el-aside width="65px">
+                    <div class="menu" style="border-right: 1px solid #E4E7ED">
+                        <div class="menu-text">
+                            <img src="/static/admin/default/image/logo.png" width="35px" height="35px"/>
+                        </div>
+                        <div :class="{ 'active': item.id == nowId }" class="menu-text" v-for="item in menu" :key="item.id" @click="showSub(item)">
+                            <i :class="item.icon"></i>
+                            <p>{{ item.name }}</p>
+                        </div>
+                    </div>
+                </el-aside>
+                <el-main style="padding: 0;text-align: left">
+                    <div class="sub-menu">
+                        <div class="side-top" v-if="!isCollapse"><h2>{{ title }}</h2></div>
+                        <el-row class="tac">
+                            <el-col :span="24">
+                                <el-menu class="el-menu-vertical-demo" @open="handleOpen" @close="handleClose" :collapse="isCollapse" :default-active="nowSubId">
+
+                                    <el-submenu v-if="item.child && item.child.length > 0" v-for="item in subMenu" :key="item.id" :index="(item.id).toString()">
+                                        <template slot="title">
+                                            <i :class="item.icon"></i>
+                                            <span>{{ item.name }}</span>
+                                        </template>
+                                        <el-menu-item :index="(vo.id).toString()" @click="openPage(vo)" v-for="vo in item.child" :key="vo.id">{{ vo.name }}</el-menu-item>
+                                    </el-submenu>
+
+                                    <el-menu-item v-if="!item.child" v-for="item in subMenu" :key="item.id" :index="(item.id).toString()" @click="openPage(item)">
+                                        <i :class="item.icon"></i>
+                                        <span slot="title">{{ item.name }}</span>
+                                    </el-menu-item>
+
+                                </el-menu>
+                            </el-col>
+                        </el-row>
+                        <div class="side-bottom" @click="optMenu">
+                            <i :class="menuIcon"></i>
+                        </div>
+                    </div>
+                </el-main>
+            </el-container>
+        </el-aside>
+        <el-container>
+            <el-header style="height: 51px">
+                <i class="el-icon-refresh" style="cursor: pointer;float: left;font-size: 14px;margin-top: 16px" @click="refresh">刷新</i>
+                <div class="block" style="float: right;margin-top: 10px;height: 40px;">
+                    <el-avatar :size="30" src="{$avatar}"></el-avatar>
+                    <el-dropdown style="height: 40px;" @command="handleCommand">
+                        <span class="user-name">{$nickname}</span>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item command="password">修改密码</el-dropdown-item>
+                            <el-dropdown-item command="loginOut">退出</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </div>
+            </el-header>
+            <el-main style="background: #f6f8f9;padding: 10px;overflow: hidden">
+                <iframe ref="iframe" :src="nowPageUrl" frameborder="no" border="0" marginwidth="0" marginheight="0" allowtransparency="yes" class="page-content"></iframe>
+            </el-main>
+            <el-footer style="height: 51px">
+                Powered By
+                <a href="https://gitee.com/nickbai/sparkshop" target="_blank" style="text-decoration: none;color:#409EFF">
+                    {$title} {$version}
+                </a>
+            </el-footer>
+        </el-container>
+    </el-container>
+</div>
+
+<script>
+    let menu = {$menu|raw};
+    new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                title: '首页',
+                nowPageUrl: "{:url('index/home')}",
+                oldBaseUrl: "{:url('index/home')}",
+                nowId: 122,
+                nowSubId: '123',
+                menu: menu,
+                subMenu: [],
+                isCollapse: false,
+                menuWidth: '230px',
+                menuIcon: 'el-icon-s-fold',
+                circleUrl: "https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png",
+            }
+        },
+        mounted() {
+            this.showSub(menu[0])
+        },
+        methods: {
+            handleOpen(key, keyPath) {
+            },
+            handleClose(key, keyPath) {
+            },
+            showSub(item) {
+                this.subMenu = item.child
+                this.nowId = item.id
+                this.title = item.name
+            },
+            // 点击查看详情
+            openPage(item) {
+                this.oldBaseUrl = this.nowPageUrl = '/{:config("shop.backend_index")}/' + item.path
+                this.nowSubId = item.id + ''
+            },
+            // 展开合并
+            optMenu() {
+                if (!this.isCollapse) {
+                    this.menuWidth = '125px'
+                    this.menuIcon = 'el-icon-s-unfold'
+                } else {
+                    this.menuWidth = '230px'
+                    this.menuIcon = 'el-icon-s-fold'
+                }
+                this.isCollapse = !this.isCollapse
+            },
+            refresh() {
+                this.nowPageUrl = this.oldBaseUrl + '?t=' + Math.random()
+            },
+            handleCommand(cmd) {
+                if (cmd == 'loginOut') {
+                    window.location.href = '{:url("login/loginOut")}'
+                }
+            }
+        }
+    })
+</script>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+    html,body,#app {
+        height: 100%;
+        width: 100%;
+    }
+    .side-top {
+        border-bottom: 1px solid #ebeef5;
+        height: 50px;
+        line-height: 50px;
+    }
+    .side-top h2 {
+        padding: 0 20px;
+        font-size: 17px;
+        color: #3c4a54;
+        text-align: left;
+    }
+    .el-menu {
+        border-right:none;
+    }
+    .el-header, .el-footer {
+        height: 51px;
+        background-color: #fff;
+        color: #333;
+        text-align: center;
+        line-height: 51px;
+    }
+    .el-container {
+        height: 100%;
+        width: 100%;
+    }
+
+    .el-aside {
+        color: #fff;
+        text-align: center;
+        line-height: 100%;
+    }
+
+    .el-main {
+        background-color: #fff;
+        color: #333;
+        text-align: center;
+        line-height: 100%;
+    }
+    .page-content {
+        height: 100%;
+        width: 100%;
+    }
+    .user-name {
+        position: relative;top:-10px;cursor: pointer
+    }
+    .menu {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    .menu-text {
+        cursor: pointer;
+        width: 65px;
+        height: 65px;
+        color: #303133;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    .menu-text p {
+        font-size: 12px;
+        margin-top: 5px;
+    }
+    .menu .active {
+        background: #f2f3f5;
+        color: #409EFF;
+    }
+    .sub-menu {
+        height: 100%;
+        width: 99%;
+        box-shadow: 2px 0 8px 0 rgba(29, 35, 41, 0.05);
+        border-right: 1px solid #e6e6e6;
+        transition: width 0.3s;
+        display: flex;
+        flex-flow: column;
+    }
+    .side-bottom {
+        border-top: 1px solid #ebeef5;
+        height: 51px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .tac {
+        height: 100%;
+        overflow: auto;
+        overflow-x: hidden;
+        flex: 1;
+    }
+</style>
+</body>
+</html>

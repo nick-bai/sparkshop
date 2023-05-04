@@ -1,0 +1,79 @@
+<div id="refund-money-box">
+    <div class="order-progress" style="margin-top: 20px;margin-bottom: 0px">
+        <ol class="progress-list clearfix">
+            <li class="step step-done step-first" style="flex:0 276px">
+                <div class="order_progress">
+                    <span class="text">
+                        1、申请仅退款
+                    </span>
+                </div>
+            </li>
+            <li class="step" style="flex:0 276px">
+                <div class="order_progress">
+                    <span class="text">
+                        2、平台审核
+                    </span>
+                </div>
+            </li>
+            <li class="step " style="flex:0 276px">
+                <div class="order_progress">
+                    <span class="text">
+                        3、退款完毕
+                    </span>
+                </div>
+            </li>
+        </ol>
+    </div>
+
+    <form class="layui-form" action="" style="margin-top: 10px">
+        <input type="hidden" name="order_id" value="{$info['id']}">
+        <input type="hidden" name="refund_type" value="1">
+        <input type="hidden" name="order_type" value="{$order_type}">
+        <div class="layui-form-item">
+            <label class="layui-form-label" style="width: 110px"><em style="color:red">*</em> 退款原因</label>
+            <div class="layui-input-block" style="margin-left: 110px">
+                <select name="refund_explain" lay-verify="required">
+                    <option value=""></option>
+                    {foreach name="refund_select" item="vo"}
+                    <option value="{$vo}">{$vo}</option>
+                    {/foreach}
+                </select>
+            </div>
+        </div>
+        {if $order_type == 2}
+        <div class="layui-form-item">
+            <label class="layui-form-label" style="width: 110px"><em style="color:red">*</em> 退货数量</label>
+            <div class="layui-input-block" style="margin-left: 110px">
+                <input type="number" name="refund_num" required lay-verify="required" autocomplete="off" placeholder="" class="layui-input" value="{$info['total_num']}">
+            </div>
+        </div>
+        {else/}
+        <input type="hidden" name="refund_num" value="{$info['total_num']}">
+        <input type="hidden" name="refund_amount" value="{$info['pay_price']}">
+        {/if}
+        <div class="layui-form-item">
+            <label class="layui-form-label" style="width: 110px">退款说明</label>
+            <div class="layui-input-block" style="margin-left: 110px">
+                <textarea name="remark" autocomplete="off" placeholder="最多200字" class="layui-input" style="height: 100px"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label" style="width: 110px">上传凭证<br/>[最多3张]</label>
+            <div class="layui-input-block" style="margin-left: 110px">
+                <button type="button" class="layui-btn layui-btn-primary" id="refund-money-upload"><i class="layui-icon">&#xe67c;</i>上传</button>
+                <blockquote class="layui-elem-quote layui-quote-nm" style="margin-top: 10px;">
+                    预览图：
+                    <div class="layui-upload-list" id="refund-money-pic">
+
+                    </div>
+                </blockquote>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button type="submit" class="layui-btn" lay-submit="" lay-filter="submit-money" style="background: #E9332D">立即提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>

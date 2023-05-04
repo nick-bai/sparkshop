@@ -1,0 +1,66 @@
+<el-form :model="form" :rules="rules" ref="ruleForm" label-width="140px">
+  <el-form-item label="等级名称" prop="title">
+    <el-input v-model="form.title"></el-input>
+  </el-form-item>
+  <el-form-item label="等级值" prop="level">
+    <el-input v-model="form.level" type="number"></el-input>
+  </el-form-item>
+  <el-form-item label="享受折扣" prop="discount">
+    <template slot-scope="{}" slot="label">
+      <span>享受折扣</span>
+      <el-tooltip class="item" effect="dark" placement="top">
+        <i class="el-icon-question" style="font-size: 14px; vertical-align: middle;"></i>
+        <div slot="content">
+          例如：9折填写90，98折填写 98
+        </div>
+      </el-tooltip>
+    </template>
+    <template>
+      <el-input v-model="form.discount" type="number"></el-input>
+    </template>
+  </el-form-item>
+  <el-form-item label="解锁需经验值达到" prop="experience">
+    <el-input v-model="form.experience" type="number"></el-input>
+  </el-form-item>
+  <el-form-item label="图标" prop="icon">
+    <ul class="img-list">
+      <li v-if="form.icon">
+        <img :src="form.icon" width="58px" height="58px" alt="图片">
+        <div class="img-tools">
+          <i class="el-icon-delete" style="font-size: 14px;color: #fff" @click="removeImg()"></i>
+        </div>
+      </li>
+      <li>
+        <div class="addImg" @click="showImage(1)">
+          <i class="el-icon-plus"></i>
+        </div>
+      </li>
+    </ul>
+  </el-form-item>
+  <el-form-item label="背景图" prop="card_bg">
+    <ul class="img-list">
+      <li v-if="form.card_bg">
+        <img :src="form.card_bg" width="58px" height="58px" alt="图片">
+        <div class="img-tools">
+          <i class="el-icon-delete" style="font-size: 14px;color: #fff" @click="removeBgImg()"></i>
+        </div>
+      </li>
+      <li>
+        <div class="addImg" @click="showImage(2)">
+          <i class="el-icon-plus"></i>
+        </div>
+      </li>
+    </ul>
+  </el-form-item>
+  <el-form-item label="是否显示" prop="status">
+    <el-radio v-model="form.status" :label="1">显示</el-radio>
+    <el-radio v-model="form.status" :label="2">隐藏</el-radio>
+  </el-form-item>
+  <el-form-item label="等级说明" prop="remark">
+    <el-input v-model="form.remark" type="textarea" rows="3"></el-input>
+  </el-form-item>
+</el-form>
+<div slot="footer" class="dialog-footer">
+  <el-button @click="dialogVisible = false" size="small">取 消</el-button>
+  <el-button type="primary" @click="optSubmit('ruleForm')" size="small" :loading="loading">确 定</el-button>
+</div>

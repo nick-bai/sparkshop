@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>城市数据</title>
+    <link rel="stylesheet" href="{__CSS__}/element_ui.css"/>
+    <link rel="stylesheet" href="{__CSS__}/style.css"/>
+    <script src="{__JS__}/vue2.js"></script>
+    <script src="{__JS__}/element_ui.js"></script>
+    <script src="{__JS__}/axios.min.js"></script>
+    <script src="{__JS__}/request.js"></script>
+</head>
+<body>
+<div id="app">
+    <div class="app-loading" v-if="pageLoading">
+        <div class="app-loading__logo">
+            <img src="{__IMG__}/logo.png"/>
+        </div>
+        <div class="app-loading__loader"></div>
+        <div class="app-loading__title">{$title}</div>
+    </div>
+    <el-card class="box-card" v-else>
+        <div slot="header" class="clearfix">
+            <span>城市数据</span>
+        </div>
+        <el-button type="primary" size="small" @click="addTop"><i class="el-icon-plus"></i> 添加省份</el-button>
+        <div style="width:100%;height:0;border-bottom:#E4E7ED 1px dashed;margin-top: 10px"></div>
+        <el-table
+                :data="tableData"
+                style="width: 100%;"
+                row-key="id"
+                lazy
+                :load="load"
+                :tree-props="{children: 'children', hasChildren: 'hasChildren'}">
+            <el-table-column
+                    type=""
+                    prop="id"
+                    label="编号">
+            </el-table-column>
+            <el-table-column
+                    prop="name"
+                    label="地区名称">
+            </el-table-column>
+            <el-table-column
+                    prop="is_show"
+                    label="状态">
+                <template scope="scope">
+                    <el-tag type="success" v-if="scope.row.is_show == 1">显示</el-tag>
+                    <el-tag type="danger" v-else>隐藏</el-tag>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="operation"
+                    label="操作">
+                <template scope="scope">
+                    <el-button @click="add(scope.row)" type="text" size="small" v-if="scope.row.level <= 2">添加</el-button>
+                    <el-button @click="edit(scope.row)" type="text" size="small">编辑</el-button>
+                    <el-button @click="del(scope.row)" type="text" size="small">删除</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+
+        <el-dialog
+                :title="title"
+                :append-to-body="true"
+                :visible.sync="dialogVisible"
+                width="30%">
+            <el-form :model="form" label-width="80px" :rules="rules" ref="ruleForm">
+                <el-form-item label="上级地区" v-if="showParent">
+                    <el-input v-model="pname" :disabled="true"></el-input>
+                </el-form-item>
+                <el-form-item label="地区编码" prop="id">
+                    <el-input v-model="form.id"></el-input>
+                </el-form-item>
+                <el-form-item label="省份名称" prop="name">
+                    <el-input v-model="form.name"></el-input>
+                </el-form-item>
+                <el-form-item label="是否启用" prop="is_show">
+                    <el-radio-group v-model="form.is_show">
+                        <el-radio label="1">启用</el-radio>
+                        <el-radio label="2">禁用</el-radio>
+                    </el-radio-group>
+                </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="dialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="submitForm('ruleForm')">确 定</el-button>
+            </span>
+        </el-dialog>
+    </el-card>
+</div>
+<script>
+
+    let data = {$tree | raw};
+
+    var app = new Vue({
+        el: '#app',
+        data: {
+            pageLoading: true,
+            tableData: data,
+            dialogVisible: false,
+            title: '添加省份',
+            showParent: false,
+            baseIndex: '/{:config("shop.backend_index")}/',
+            mode: 'add',
+            form: {
+                id: 0,
+                name: "",
+                pid: 0,
+                is_show: "1",
+                level: 1
+            },
+            pname: "",
+            rules: {
+                name: [
+                    {required: true, message: '请输入名称', trigger: 'blur'}
+                ],
+                is_show: [
+                    {required: true, message: '请选择是否启用', trigger: 'blur'}
+                ],
+                id: [
+                    {required: true, message: '请输入地区编码', trigger: 'blur'}
+                ],
+            },
+        },
+        mounted() {
+            this.pageLoading = false
+        },
+        methods: {
+            async load(tree, treeNode, resolve) {
+                let res = await request.get(this.baseIndex + 'city/index', {pid: tree.id, level: tree.level})
+                if (res.code == 0) {
+                    resolve(res.data)
+                }
+            },
+            add(row) {
+                this.title = '添加地区';
+                this.form.level = row.level + 1;
+                this.form.pid = row.id;
+                this.pname = row.name;
+                this.form.name = '';
+                this.showParent = true;
+                this.mode = 'add';
+
+                this.dialogVisible = true;
+            },
+            edit(row) {
+                this.form.id = row.id;
+                this.form.name = row.name;
+                this.form.pid = row.pid;
+                this.form.is_show = String(row.is_show)
+                this.form.level = row.level;
+                this.showParent = false;
+                this.mode = 'edit';
+
+                this.dialogVisible = true;
+            },
+            del(row) {
+                this.$confirm('确定删除此地区?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    let res = await request.get(this.baseIndex + 'city/del', {id: row.id})
+                    if (res.code == 0) {
+                        this.$message({
+                            type: 'success',
+                            message: '删除成功!'
+                        });
+                        setTimeout(() => {
+                            this.getList();
+                        }, 500)
+                    } else {
+                        this.$message({
+                            type: 'error',
+                            message: res.msg
+                        });
+                    }
+                }).catch(() => {});
+            },
+            addTop() {
+                this.title = '添加省份';
+                this.form.id = 0
+                this.form.level = 1;
+                this.form.pid = 0;
+                this.form.name = '';
+                this.showParent = false;
+                this.mode = 'add';
+                this.dialogVisible = true;
+            },
+            getList() {
+                window.location.reload();
+            },
+            submitForm(formName) {
+                this.$refs[formName].validate(async (valid) => {
+                    if (valid) {
+                        let url = '{:url("city/add")}';
+                        if (this.mode == 'edit') {
+                            url = '{:url("city/edit")}';
+                        }
+
+                        let res = await request.post(url, this.form)
+                        if (res.code == 0) {
+                            this.$message.success(res.msg);
+                            this.dialogVisible = false
+                            setTimeout(() => {
+                                this.getList();
+                            }, 500)
+                        } else {
+                            this.$message.error(res.msg);
+                        }
+                    }
+                });
+            }
+        },
+    })
+</script>
+<style>
+    a {text-decoration:none;}
+</style>
+</body>
+</html>
