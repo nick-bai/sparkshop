@@ -24,8 +24,8 @@ https://k48rm6jpq3.k.topthink.com/@8lrxddk245/jieshao.html
 
 国内开源地址：https://gitee.com/nickbai/sparkshop
 
-管理后台：https://sparkshop.pfecms.com/admin  账号：admin  密码：admin  
-h5端地址：https://h5.pfecms.com/#/  账号：15695218888  密码：123123  【手机访问】
+管理后台：https://sparkshop.pfecms.com/admin  账号：admin  密码：sparkshop  
+h5端地址：https://h5.pfecms.com/#/  账号：15695218888  密码：sparkshop  【手机访问】
 
 > 演示环境暂时用余额去支付，为了保证大家的效果，暂时禁止数据的操作。
 
